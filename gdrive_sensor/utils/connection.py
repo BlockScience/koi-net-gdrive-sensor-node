@@ -1,0 +1,33 @@
+# Decompiled with PyLingual (https://pylingual.io)
+# Internal filename: /Users/joshua/Projects/prod/koi-sensors/gdrive_sensor/utils/connection.py
+# Bytecode version: 3.12.0rc2 (3531)
+# Source timestamp: 2025-03-15 01:30:07 UTC (1742002207)
+
+import os
+import pickle
+from googleapiclient.discovery import build, Resource
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+SCOPES = ['https://www.googleapis.com/auth/drive']
+current_directory = os.path.dirname(os.path.abspath(__file__))
+CREDENTIALS_FILE = f'{current_directory}/credentials.json'
+
+def create_drive_service():
+    creds = None
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+    drive_service = build('drive', 'v3', credentials=creds)
+    doc_service = build('docs', 'v1', credentials=creds)
+    sheet_service = build('sheets', 'v4', credentials=creds)
+    slides_service = build('slides', 'v1', credentials=creds)
+    return (drive_service, doc_service, sheet_service, slides_service)
+drive_service, doc_service, sheet_service, slides_service = create_drive_service()

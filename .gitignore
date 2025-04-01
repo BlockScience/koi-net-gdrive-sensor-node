@@ -3,4 +3,10 @@ __pycache__
 .vscode
 venv
 test*
+my_cache
+gdrive_sensor/my_cache
+gdrive_sensor/token.pickle
+gdrive_sensor/credentials.json
+gdrive_sensor/old
 .env
+todo.txt
