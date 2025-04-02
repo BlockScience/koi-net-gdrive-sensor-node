@@ -1,8 +1,3 @@
-# Decompiled with PyLingual (https://pylingual.io)
-# Internal filename: /Users/joshua/Projects/prod/koi-sensors/gdrive_sensor/utils/connection.py
-# Bytecode version: 3.12.0rc2 (3531)
-# Source timestamp: 2025-03-15 01:30:07 UTC (1742002207)
-
 import os
 import pickle
 from googleapiclient.discovery import build, Resource

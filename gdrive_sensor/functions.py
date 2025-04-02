@@ -10,20 +10,6 @@ from utils.types import GoogleDrive, GoogleDoc, docsType, folderType, sheetsType
 cache = Cache(f"{os.getcwd()}/my_cache")
 effector = Effector(cache)
 
-# the ;path'
-
-# {'contents': {'id': 'masked',
-#               'mimeType': 'application/vnd.google-apps.document',
-#               'path': 'masked_name/masked_name/masked_name',
-#               "id_path": 'masked_id/masked_id/masked_file_id'
-#               'text': 'masked',
-#               'url': 'https://drive.google.com/file/d/{masked_id}'},
-#  'manifest': {'rid': 'orn:google.drive.document:{masked_id}',
-#               'sha256_hash': 'e6641bd3e8c9810c1afb940fd49f7596688c3b37461b0fe375a9733fde60a557',
-#               'timestamp': '2025-03-01T02:23:04.618580+00:00'}}
-
-#ToDo: Auth consideration - Try accessing provare folder
-
 def bundle_dir(item: dict):
     if not item['mimeType'] == folderType:
         print(f"Required MIME type for document: {folderType}")
@@ -35,30 +21,6 @@ def publish(rid_obj, bundle, event_type):
         publish_event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=bundle.manifest)
     elif event_type is EventType.UPDATE:
         publish_event = Event(rid=rid_obj, event_type=EventType.UPDATE, manifest=bundle.manifest)
-
-
-# Next ToDo (done): we want access to raw doc representation
-# Next plus (done): URL is a transformation from one RID to Another, HTTPS Type
-# Next ToDo (done for docs): content should be the direct json returned from the file / folder
-# Next ToDo (done): Remove folder ids and just include file id
-# Next ToDo (Done): find schema & endpoint differences online for different types (an aditional type)
-# ToDo: Test rid.from_string
-# ToDo: Get URL fom api (in returned content)
-# ToDo: rename item to metadata
-# ToDo: Look up auth is universaly unique or tied to specific account
-# ToDo: Auth Scopes [is per account and folder (root)] (read only, etc)
-# ToDo: select folder to opperate out off
-# ToDo; Processing live file Updates contigent on deployment
-# Near: Pull (backfill or catch up (do i have everything)), & cache, then bundle and publish events what hasnt been published
-
-# ToDo: Refactor Processor, set up call with sayer
-
-
-# Question: if i change a files folder locations does the id change or remain the same
-# Question: if i edit does the id change or remain the same
-
-# Future: mimeTypes in manafest
-# Future: parsed knowledge object (concatenated text) in the future
 
 def bundle_obj(item: dict, content: dict):
     rid_obj: GoogleDoc = GoogleDrive.from_reference(item['id']).google_object(item['mimeType'])
@@ -108,7 +70,6 @@ def bundle_list(folder_name = None):
     # query = f"mimeType='{folderType}' and name='{folder_name}'"
     # query = f"mimeType='{folderType}' and id='{folder_name}'"
     # query = f"id='{folder_name}'"
-    {'kind': 'drive#file', 'mimeType': 'application/vnd.google-apps.folder', 'id': '1OwnHDuusN9ZiFgUzmttR-cLDbU0sS4z3', 'name': 'koi'}
     query = f"mimeType='{folderType}' or mimeType!='{folderType}'"
     # if folder_name is not None:
     #    query = folder_query
