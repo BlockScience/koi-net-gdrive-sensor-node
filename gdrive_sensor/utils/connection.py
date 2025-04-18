@@ -1,11 +1,11 @@
-import os
-import pickle
+import os, pickle
+from .. import SENSOR
 from googleapiclient.discovery import build, Resource
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 SCOPES = ['https://www.googleapis.com/auth/drive']
-current_directory = os.path.dirname(os.path.abspath(__file__))
-CREDENTIALS_FILE = f'{current_directory}/credentials.json'
+# current_directory = os.path.dirname(os.path.abspath(__file__))
+CREDENTIALS_FILE = f'{SENSOR}/credentials.json'
 
 def create_drive_service():
     creds = None
