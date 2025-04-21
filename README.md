@@ -13,30 +13,26 @@
     mkdir gdrive_sensor/net/metadata
     ```
 
-** Authorization Script**
+2. **Authorization Script:**
     ```bash
     # Run GDrive API 
     # Should prompt a Google Account sign-in
     python gdrive_api_exp.py
     ```
 
- **Setup Google Drive (KOI) Sensor Net:**
-    * Coordinator Terminal
+3. **Setup Google Drive (KOI) Sensor Net:**
+
+    * Coordinator Terminal:
     ```bash
     python -m gdrive_sensor.net.basic_coordinator_node
     ```
-    * Full Node Terminal(s)
+
+    * Full Node Terminal(s):
     ```bash
     python -m gdrive_sensor.net.full_node
     ```
-    * I/O Partial Node Terminal(s)
+    
+    * I/O Partial Node Terminal(s): Make a broadcast reqest to Full Node & retrieve state via polling
     ```bash
     python -m gdrive_sensor.net.io_partial_node
-    ```
-    
-
- **Make a reqest to Full Node:**
- * Egress Partial Node Terminal(s)
-    ```bash
-    python -m gdrive_sensor.net.egress_partial_node
     ```
