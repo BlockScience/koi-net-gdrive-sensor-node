@@ -104,17 +104,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# @app.post(BROADCAST_EVENTS_PATH)
-# def broadcast_events(req: EventsPayload):
-#     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-#     for event in req.events:
-#         node.processor.handle(event=event, source=KnowledgeSource.External)
-
 @app.post(BROADCAST_EVENTS_PATH)
-def broadcast_events(req: BundlesPayload):
+def broadcast_events(req: EventsPayload):
     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-    for event in req.bundles:
-        node.processor.handle(event=event, source=KnowledgeSource.Internal)
+    for event in req.events:
+        node.processor.handle(event=event, source=KnowledgeSource.External)
+
+# @app.post(BROADCAST_EVENTS_PATH)
+# def broadcast_events(req: BundlesPayload):
+#     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
+#     for event in req.bundles:
+#         node.processor.handle(event=event, source=KnowledgeSource.Internal)
     
 @app.post(POLL_EVENTS_PATH)
 def poll_events(req: PollEvents) -> EventsPayload:
