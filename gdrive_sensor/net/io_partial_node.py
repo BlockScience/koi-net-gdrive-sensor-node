@@ -39,14 +39,14 @@ node = NodeInterface(
 if __name__ == "__main__":
     node.start()
 
-    url = 'http://127.0.0.1:5000/'
+    full_node_url = 'http://127.0.0.1:5000/koi-net'
     driveId = '0AJflT9JpikpnUk9PVA'
     query = f"\'{driveId}\' in parents"
     bundles = bundle_list(query=query, driveId=driveId)
     events_payload = EventsPayload(events = event_filter(bundles))
     req_handler = RequestHandler(cache=node.network.cache, graph=node.network.graph)
     req_handler.broadcast_events(
-        url = url, 
+        url = full_node_url, 
         req = events_payload
     )
 
