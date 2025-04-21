@@ -8,6 +8,7 @@
     # Optional: Create Virtual Environment
     # python -m venv ./venv
     # source ./venv/bin/activate
+    git checkout koi-net
     python -m pip install --upgrade pip
     pip install -r gdrive_sensor/requirements.txt
     mkdir gdrive_sensor/net/metadata
@@ -31,7 +32,7 @@
     ```bash
     python -m gdrive_sensor.net.full_node
     ```
-    
+
     * I/O Partial Node Terminal(s): Make a broadcast reqest to Full Node & retrieve state via polling
     ```bash
     python -m gdrive_sensor.net.io_partial_node
