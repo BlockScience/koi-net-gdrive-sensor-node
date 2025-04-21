@@ -31,6 +31,7 @@ from koi_net.protocol.consts import (
     FETCH_BUNDLES_PATH
 )
 
+from .. import SENSOR
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,9 +55,10 @@ node = NodeInterface(
         )
     ),
     use_kobj_processor_thread=True,
-    cache_directory_path="coordinator_node_rid_cache",
-    event_queues_file_path="coordinator_node_event_queus.json",
-    identity_file_path="coordinator_node_identity.json",
+    # cache_directory_path="coordinator_node_rid_cache",
+    cache_directory_path=f"{SENSOR}/net/metadata/coordinator_node_rid_cache",
+    event_queues_file_path=f"{SENSOR}/net/metadata/coordinator_node_event_queus.json",
+    identity_file_path=f"{SENSOR}/net/metadata/coordinator_node_identity.json",
 )
 
 
@@ -102,11 +104,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# @app.post(BROADCAST_EVENTS_PATH)
+# def broadcast_events(req: EventsPayload):
+#     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
+#     for event in req.events:
+#         node.processor.handle(event=event, source=KnowledgeSource.External)
+
 @app.post(BROADCAST_EVENTS_PATH)
-def broadcast_events(req: EventsPayload):
+def broadcast_events(req: BundlesPayload):
     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-    for event in req.events:
-        node.processor.handle(event=event, source=KnowledgeSource.External)
+    for event in req.bundles:
+        node.processor.handle(event=event, source=KnowledgeSource.Internal)
     
 @app.post(POLL_EVENTS_PATH)
 def poll_events(req: PollEvents) -> EventsPayload:
@@ -129,7 +137,7 @@ def fetch_bundles(req: FetchBundles) -> BundlesPayload:
 if __name__ == "__main__":
     openapi_spec = app.openapi()
 
-    with open("koi-net-protocol-openapi.json", "w") as f:
+    with open(f"{SENSOR}/net/metadata/koi-net-protocol-openapi.json", "w") as f:
         json.dump(openapi_spec, f, indent=2)
     
-    uvicorn.run("node.basic_coordinator_node:app", port=port)
+    uvicorn.run("gdrive_sensor.net.basic_coordinator_node:app", port=port)

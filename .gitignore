@@ -8,6 +8,8 @@ gdrive_sensor/my_cache
 credentials.json
 gdrive_sensor/credentials.json
 gdrive_sensor/old
+gdrive_sensor/net/old
+gdrive_sensor/net/metadata
 gdrive_sensor/__pycache__
 gdrive_sensor/utils/__pycache__
 .env
@@ -22,3 +24,6 @@ gdrive_sensor/koi-net-protocol-openapi.json
 gdrive_sensor/coordinator_node_identity.json
 token.pickle
 gdrive_sensor/token.pickle
+
+hackmd_sensor/
+slack_sensor/

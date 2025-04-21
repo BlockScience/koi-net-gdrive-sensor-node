@@ -1,4 +1,3 @@
-import os
 from pprint import pprint
 from rid_lib.ext import Cache, Effector, Bundle
 from koi_net.protocol.event import Event, EventType
@@ -73,8 +72,17 @@ def bundle_slides(item: dict):
 # list_all_folders_and_files_with_details
 
 
-def bundle_list(query: str):
-    results = drive_service.files().list(q=query).execute()
+def bundle_list(query: str, driveId: str = None):
+    results = None
+    if driveId is None:
+        results = drive_service.files().list(q=query).execute()
+    else:
+        results = drive_service.files().list(
+            q=query, 
+            driveId=driveId, 
+            includeItemsFromAllDrives=True, 
+            supportsAllDrives=True, 
+            corpora='drive').execute()
     items = results.get('files', [])
     
     # if not items:
@@ -107,8 +115,27 @@ def event_filter(bundles):
     events = []
     for bundle in bundles:
         manifest = bundle.manifest
-        pprint(manifest)
         rid_obj = manifest.rid
         event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=manifest)
         events.append(event)
     return events
+
+def rid_filter(bundles):
+    rids = []
+    for bundle in bundles:
+        manifest = bundle.manifest
+        rid_obj = manifest.rid
+        rids.append(rid_obj)
+    return rids
+
+# List shared drives
+def list_shared_drives(service):
+    results = service.drives().list().execute()
+    drives = results.get('drives', [])
+
+    if not drives:
+        print('No shared drives found.')
+    else:
+        print('Shared drives:')
+        for drive in drives:
+            print(f"Drive ID: {drive['id']}, Name: {drive['name']}")

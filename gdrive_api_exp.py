@@ -1,12 +1,16 @@
 from pprint import pprint
-from .utils.functions import bundle_list
+from gdrive_sensor.utils.functions import bundle_list, list_shared_drives
+from gdrive_sensor.utils.connection import drive_service
 from koi_net.protocol.event import Event, EventType
 
 # Example usage
-query = f"'1OwnHDuusN9ZiFgUzmttR-cLDbU0sS4z3' in parents"
+# query = f"'1OwnHDuusN9ZiFgUzmttR-cLDbU0sS4z3' in parents"
+driveId = '0AJflT9JpikpnUk9PVA'
+query = f"\'{driveId}\' in parents"
+
 # query = f"'koi' in parents"
 # query = f"mimeType='{folderType}' or mimeType!='{folderType}'"
-bundles = bundle_list(query)
+bundles = bundle_list(query=query, driveId=driveId)
 bundle_manifest = dict(bundles[1].manifest)
 rid_obj = bundles[1].manifest.rid
 bundle_contents = dict(bundles[1].contents)
@@ -18,8 +22,9 @@ print()
 event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=bundle_manifest)
 print(event)
 print()
-# print()
+print()
 # pprint(bundle_contents)
+# list_shared_drives(drive_service)
 
 
 

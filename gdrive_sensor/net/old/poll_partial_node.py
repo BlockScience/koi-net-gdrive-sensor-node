@@ -3,9 +3,8 @@ from rich.logging import RichHandler
 from koi_net import NodeInterface
 from koi_net.processor.knowledge_object import KnowledgeSource
 from koi_net.protocol.node import NodeProfile, NodeType
-from pprint import pprint
 
-from ..utils.functions import bundle_list
+from .. import SENSOR
 
 
 logging.basicConfig(
@@ -25,19 +24,17 @@ node = NodeInterface(
     profile=NodeProfile(
         node_type=NodeType.PARTIAL,
     ),
+    cache_directory_path=f"{SENSOR}/node/metadata/poll_partial_node_rid_cache",
+    identity_file_path=f"{SENSOR}/node/metadata/poll_partial_node_identity.json",
     first_contact=coordinator_url
 )
+node.network.graph
+
+
 
 
 if __name__ == "__main__":
     node.start()
-
-    query = f"'1OwnHDuusN9ZiFgUzmttR-cLDbU0sS4z3' in parents"
-    for bundle in bundle_list(query):
-        node.processor.handle(bundle=bundle, source=KnowledgeSource.Internal)
-    # for event in event_filter(bundles):
-    #     # node.processor.handle(event=event, source=KnowledgeSource.Internal)
-    #     node.processor.handle(event=event, source=KnowledgeSource.Internal)
 
     try:
         while True:
