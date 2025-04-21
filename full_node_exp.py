@@ -17,6 +17,8 @@ driveId = '0AJflT9JpikpnUk9PVA'
 query = f"\'{driveId}\' in parents"
 # bundles = bundle_list(query=query, driveId=driveId)
 # events = event_filter(bundles)
+# bundle_contents = dict(bundles[1].contents)
+
 
 # events_payload = EventsPayload(events = event_filter(bundles))
 events_payload = EventsPayload(events = [])

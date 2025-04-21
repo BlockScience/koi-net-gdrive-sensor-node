@@ -76,10 +76,10 @@ def broadcast_events(req: EventsPayload):
 # @app.post(BROADCAST_EVENTS_PATH)
 # def broadcast_events(req: EventsPayload):
 #     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-#     # driveId = '0AJflT9JpikpnUk9PVA'
-#     # query = f"\'{driveId}\' in parents"
-#     # bundles = bundle_list(query=query, driveId=driveId)
-#     # req.events = event_filter(bundles)
+#     driveId = '0AJflT9JpikpnUk9PVA'
+#     query = f"\'{driveId}\' in parents"
+#     bundles = bundle_list(query=query, driveId=driveId)
+#     req.events = event_filter(bundles)
 #     for event in req.events:
 #         print(str(event.bundle.contents['rid']), flush=True)
 #         print(flush=True)
