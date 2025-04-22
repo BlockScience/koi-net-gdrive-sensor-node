@@ -40,10 +40,10 @@
 
     * Full Node Terminal(s):
     ```bash
-    python -m gdrive_sensor.net.full_node
+    python -m gdrive_sensor.net.test_full_node
     ```
 
     * I/O Partial Node Terminal(s): Make a broadcast reqest to Full Node & retrieve state via polling
     ```bash
-    python -m gdrive_sensor.net.io_partial_node
+    python -m gdrive_sensor.net.partial_node_template
     ```

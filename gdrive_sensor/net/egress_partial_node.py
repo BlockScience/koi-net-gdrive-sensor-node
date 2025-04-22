@@ -31,28 +31,17 @@ node = NodeInterface(
     profile=NodeProfile(
         node_type=NodeType.PARTIAL,
     ),
-    cache_directory_path=f"{SENSOR}/net/metadata/io_partial_node_rid_cache",
-    identity_file_path=f"{SENSOR}/net/metadata/io_partial_node_identity.json",
+    cache_directory_path=f"{SENSOR}/net/metadata/egress_partial_node_rid_cache",
+    identity_file_path=f"{SENSOR}/net/metadata/egress_partial_node_identity.json",
     first_contact=coordinator_url
 )
+node.network.graph
+
+
+
 
 if __name__ == "__main__":
     node.start()
-
-    full_node_url = 'http://127.0.0.1:5000/koi-net'
-    driveId = '0AJflT9JpikpnUk9PVA'
-    query = f"\'{driveId}\' in parents"
-    bundles = bundle_list(query=query, driveId=driveId)
-    events_payload = EventsPayload(events = event_filter(bundles))
-    req_handler = RequestHandler(cache=node.network.cache, graph=node.network.graph)
-    # req_handler.broadcast_events(
-    #     url = full_node_url, 
-    #     req = events_payload
-    # )
-    req_handler.broadcast_events(
-        url = full_node_url, 
-        events = event_filter(bundles)
-    )
 
     try:
         while True:

@@ -6,6 +6,7 @@ from rid_lib.types import KoiNetNode, KoiNetEdge
 from koi_net import NodeInterface
 from koi_net.processor.knowledge_object import KnowledgeSource
 from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
+from koi_net.protocol.event import EventType
 from koi_net.protocol.api_models import (
     PollEvents,
     FetchRids,
@@ -51,8 +52,8 @@ node = NodeInterface(
             state=[KoiNetNode, KoiNetEdge]
         )
     ),
-    cache_directory_path=f"{SENSOR}/net/metadata/full_node_rid_cache",
-    identity_file_path=f"{SENSOR}/net/metadata/full_node_identity.json",
+    cache_directory_path=f"{SENSOR}/net/metadata/test_full_node_rid_cache",
+    identity_file_path=f"{SENSOR}/net/metadata/test_full_node_identity.json",
     use_kobj_processor_thread=True,
     first_contact=coordinator_url
 )
@@ -70,46 +71,13 @@ app = FastAPI(lifespan=lifespan, root_path="/koi-net")
 @app.post(BROADCAST_EVENTS_PATH)
 def broadcast_events(req: EventsPayload):
     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-    for event in req.events:
-        node.processor.handle(event=event, source=KnowledgeSource.External)
+    driveId = '0AJflT9JpikpnUk9PVA'
+    query = f"\'{driveId}\' in parents"
+    bundles = bundle_list(query=query, driveId=driveId)
+    # req.events = event_filter(bundles)
+    for bundle in bundles:
+        node.processor.handle(bundle=bundle, source=KnowledgeSource.Internal, event_type=EventType.NEW)
 
-# def broadcast_grive_events(req: EventsPayload):
-#     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-#     for event in req.events:
-#         node.processor.handle(event=event, source=KnowledgeSource.External)
-
-# @app.post(BROADCAST_EVENTS_PATH)
-# def broadcast_events(req: EventsPayload):
-#     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
-#     driveId = '0AJflT9JpikpnUk9PVA'
-#     query = f"\'{driveId}\' in parents"
-#     bundles = bundle_list(query=query, driveId=driveId)
-#     req.events = event_filter(bundles)
-#     for event in req.events:
-#         print(str(event.bundle.contents['rid']), flush=True)
-#         print(flush=True)
-#         node.processor.handle(bundles=event.bundle, source=KnowledgeSource.Internal)
-    
-    
-@app.post(POLL_EVENTS_PATH)
-def poll_events(req: PollEvents) -> EventsPayload:
-    logger.info(f"Request to {POLL_EVENTS_PATH}")
-    events = node.network.flush_poll_queue(req.rid)
-    return EventsPayload(events=events)
-
-@app.post(FETCH_RIDS_PATH)
-def fetch_rids(req: FetchRids) -> RidsPayload:
-    return node.network.response_handler.fetch_rids(req)
-
-@app.post(FETCH_MANIFESTS_PATH)
-def fetch_manifests(req: FetchManifests) -> ManifestsPayload:
-    return node.network.response_handler.fetch_manifests(req)
-
-@app.post(FETCH_BUNDLES_PATH)
-def fetch_bundles(req: FetchBundles) -> BundlesPayload:
-    return node.network.response_handler.fetch_bundles(req)
-    
-    
 if __name__ == "__main__":
     # update this path to the Python module that defines "app"
-    uvicorn.run("gdrive_sensor.net.full_node:app", port=port)
+    uvicorn.run("gdrive_sensor.net.test_full_node:app", port=port)
