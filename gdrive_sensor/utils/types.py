@@ -50,7 +50,7 @@ class GoogleSheets(GoogleFile):
     namespace = f'{GoogleItem.namespace}_sheets.spreadsheet'
 
 class GooglePresentation(GoogleFile):
-    namespace = f'{GoogleItem.namespace}_sheets.presentation'
+    namespace = f'{GoogleItem.namespace}_slides.presentation'
 
 class GoogleDrive(GoogleItem):
     namespace = f'{GoogleItem.namespace}_drive'

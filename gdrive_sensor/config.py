@@ -3,9 +3,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+ROOT = os.getcwd()
+SENSOR = f'{ROOT}/gdrive_sensor'
+
 HOST = "127.0.0.1"
-# PORT = 8002
-PORT = 5000
+PORT = 8002
+# PORT = 5000
 URL = f"http://{HOST}:{PORT}/koi-net"
 
 FIRST_CONTACT = "http://127.0.0.1:8000/koi-net"

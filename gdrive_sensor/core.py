@@ -7,8 +7,7 @@ from koi_net.processor.default_handlers import (
     edge_negotiation_handler,
     basic_network_output_filter
 )
-from .config import URL, FIRST_CONTACT
-from . import ROOT
+from .config import URL, FIRST_CONTACT, ROOT
 
 logger = logging.getLogger(__name__)
 

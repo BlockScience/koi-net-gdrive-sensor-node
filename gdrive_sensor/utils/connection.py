@@ -1,5 +1,5 @@
 import os, pickle
-from .. import SENSOR
+from ..config import SENSOR
 from googleapiclient.discovery import build, Resource
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow

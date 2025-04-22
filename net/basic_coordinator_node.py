@@ -31,7 +31,7 @@ from koi_net.protocol.consts import (
     FETCH_BUNDLES_PATH
 )
 
-from gdrive_sensor import ROOT
+from gdrive_sensor.config import ROOT
 
 logging.basicConfig(
     level=logging.INFO,

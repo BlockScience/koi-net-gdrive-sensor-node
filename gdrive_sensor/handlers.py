@@ -10,7 +10,9 @@ from koi_net.protocol.helpers import generate_edge_bundle
 from rid_lib.ext import Bundle
 from rid_lib.types import KoiNetNode
 
-from .utils.types import GoogleDrive
+from .utils.types import GoogleDrive, GoogleFolder, GoogleDoc, GooglePresentation, GoogleSheets
+from .utils.types import folderType, docsType, sheetsType, presentationType
+from .utils.connection import drive_service, doc_service, sheet_service, slides_service
 from .core import node
 
 # from .config import LAST_PROCESSED_TS
@@ -102,46 +104,65 @@ def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject
     return kobj
 
 
-# @node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDrive])
-# def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
-#     assert type(kobj.rid) == GoogleDrive
+@node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDrive])
+def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
+    assert type(kobj.rid) == GoogleDrive
     
-#     prev_bundle = processor.cache.read(kobj.rid)
+    prev_bundle = processor.cache.read(kobj.rid)
     
-#     if prev_bundle:
-#         prevChangedAt = prev_bundle.contents["lastChangedAt"]
-#         currChangedAt = kobj.contents["lastChangedAt"]
-#         logger.debug(f"Changed at {prevChangedAt} -> {currChangedAt}")
-#         if currChangedAt > prevChangedAt:
-#             logger.debug("Incoming note has been changed more recently!")
-#             kobj.normalized_event_type = EventType.UPDATE
+    if prev_bundle:
+        prevChangedAt = prev_bundle.contents["lastChangedAt"]
+        currChangedAt = kobj.contents["lastChangedAt"]
+        logger.debug(f"Changed at {prevChangedAt} -> {currChangedAt}")
+        if currChangedAt > prevChangedAt:
+            logger.debug("Incoming note has been changed more recently!")
+            kobj.normalized_event_type = EventType.UPDATE
             
-#         else:
-#             logger.debug("Incoming note is not newer")
-#             return STOP_CHAIN
+        else:
+            logger.debug("Incoming note is not newer")
+            return STOP_CHAIN
         
-#     else:
-#         logger.debug("Incoming note is previously unknown to me")
-#         kobj.normalized_event_type = EventType.NEW
+    else:
+        logger.debug("Incoming note is previously unknown to me")
+        kobj.normalized_event_type = EventType.NEW
         
-#     # logger.debug("Retrieving full note...")
-#     # data = hackmd_api.request(f"/notes/{kobj.rid.note_id}")
+    # logger.debug("Retrieving full note...")
+    # data = hackmd_api.request(f"/notes/{kobj.rid.note_id}")
     
-#     # if not data:
-#     #     logger.debug("Failed.")
-#     #     return STOP_CHAIN
+    namespace = prev_bundle.rid.namespace
+    reference = prev_bundle.rid.reference
+
+    logger.debug("Retrieving full content...")
+    if namespace == GoogleFolder.namespace:
+        logger.debug(f"Retrieving: {folderType}")
+        data = drive_service.files().get(fileId=reference).google_object(folderType).execute()
+    elif namespace == GoogleDoc.namespace:
+        logger.debug(f"Retrieving: {docsType}")
+        data = doc_service.documents().get(documentId=reference).execute()
+    elif namespace == GoogleSheets.namespace:
+        logger.debug(f"Retrieving: {sheetsType}")
+        data = sheet_service.spreadsheets().get(spreadsheetId=reference).execute()
+    elif namespace == GooglePresentation.namespace:
+        logger.debug(f"Retrieving: {presentationType}")
+        data = slides_service.presentations().get(presentationId=reference).execute()
+    else:
+        data = drive_service.files().get(fileId=reference).execute()
+
+    if not data:
+        logger.debug("Failed.")
+        return STOP_CHAIN
+
+    logger.debug("Done.")
     
-#     logger.debug("Done.")
+    full_note_bundle = Bundle.generate(
+        rid=kobj.rid,
+        contents=data
+    )
     
-#     full_note_bundle = Bundle.generate(
-#         rid=kobj.rid,
-#         contents=data
-#     )
+    kobj.manifest = full_note_bundle.manifest
+    kobj.contents = full_note_bundle.contents
     
-#     kobj.manifest = full_note_bundle.manifest
-#     kobj.contents = full_note_bundle.contents
-    
-#     return kobj
+    return kobj
 
 @node.processor.register_handler(HandlerType.RID, rid_types=[GoogleDrive])
 def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
