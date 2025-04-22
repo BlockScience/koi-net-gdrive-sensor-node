@@ -11,9 +11,9 @@ query = f"\'{driveId}\' in parents"
 # query = f"'koi' in parents"
 # query = f"mimeType='{folderType}' or mimeType!='{folderType}'"
 bundles = bundle_list(query=query, driveId=driveId)
-bundle_manifest = dict(bundles[1].manifest)
-rid_obj = bundles[1].manifest.rid
-bundle_contents = dict(bundles[1].contents)
+bundle_manifest = dict(bundles[0].manifest)
+rid_obj = bundles[0].manifest.rid
+bundle_contents = dict(bundles[0].contents)
 print("Examples:")
 print()
 print("Manifest:")

@@ -8,10 +8,11 @@
     # Optional: Create Virtual Environment
     # python -m venv ./venv
     # source ./venv/bin/activate
-    git checkout koi-net
+    git checkout gdrive
     python -m pip install --upgrade pip
-    pip install -r gdrive_sensor/requirements.txt
-    mkdir gdrive_sensor/net/metadata
+    pip install -r requirements.txt
+    # location of all metadata including caches and identities
+    mkdir net/metadata
     ```
 
 2. **Authorization Script:**
@@ -35,15 +36,10 @@
 
     * Coordinator Terminal:
     ```bash
-    python -m gdrive_sensor.net.basic_coordinator_node
+    python -m net.basic_coordinator_node
     ```
 
     * Full Node Terminal(s):
     ```bash
-    python -m gdrive_sensor.net.test_full_node
-    ```
-
-    * I/O Partial Node Terminal(s): Make a broadcast reqest to Full Node & retrieve state via polling
-    ```bash
-    python -m gdrive_sensor.net.partial_node_template
+    python -m gdrive_sensor
     ```
