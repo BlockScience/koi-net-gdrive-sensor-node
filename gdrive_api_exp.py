@@ -19,6 +19,9 @@ print()
 print("Manifest:")
 pprint(bundle_manifest)
 print()
+# print("Contents:")
+# pprint(bundle_contents)
+# print()
 print("RID Obj:")
 print(rid_obj)
 print()
@@ -27,7 +30,7 @@ event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=bundle_manifest)
 print(event)
 print()
 print()
-# pprint(bundle_contents)
+
 # list_shared_drives(drive_service)
 
 

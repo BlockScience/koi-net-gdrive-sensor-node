@@ -44,6 +44,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan, 
+    root_path="/koi-net",
     title="KOI-net Protocol API",
     version="1.0.0"
 )
