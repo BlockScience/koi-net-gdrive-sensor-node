@@ -11,6 +11,7 @@ token.pickle
 credentials.json
 .env
 todo.txt
+old/
 
 gdrive_sensor/credentials.json
 
