@@ -97,7 +97,7 @@ def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
     except HttpError as error:
         print(f"An error occurred: {error}")
 
-# subscribe_to_drive_changes(start_page_token)
+subscribe_to_drive_changes(start_page_token)
 
 def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str, channel_address: str):
     # Create the resource for the channel

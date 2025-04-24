@@ -4,7 +4,7 @@ from koi_net.protocol.event import Event, EventType
 
 from . import get_parent_ids
 from .connection import drive_service, doc_service, sheet_service, slides_service
-from .types import GoogleDrive, docsType, folderType, sheetsType, presentationType
+from .types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
 
 from ..config import SENSOR
 
@@ -24,7 +24,7 @@ def bundle_dir(item: dict):
 #         publish_event = Event(rid=rid_obj, event_type=EventType.UPDATE, manifest=manifest)
 
 def bundle_obj(item: dict, content: dict):
-    rid_obj = GoogleDrive.from_reference(item['id']).google_object(item['mimeType'])
+    rid_obj = GoogleWorkspaceApp.from_reference(item['id']).google_object(item['mimeType'])
     if cache.exists(rid_obj) == False:
         bundle = Bundle.generate(rid=rid_obj, contents=dict(content))
         cache.write(bundle)

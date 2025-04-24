@@ -3,6 +3,8 @@ import asyncio
 from .utils.functions import bundle_list
 from .core import node
 
+# ToDo: trim down bundle list to GoogleDrive File such that handler derefs specific file types
+
 logger = logging.getLogger(__name__)
 
 async def backfill(driveId='0AJflT9JpikpnUk9PVA'):

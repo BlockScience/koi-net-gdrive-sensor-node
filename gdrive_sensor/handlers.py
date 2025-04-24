@@ -10,7 +10,7 @@ from koi_net.protocol.helpers import generate_edge_bundle
 from rid_lib.ext import Bundle
 from rid_lib.types import KoiNetNode
 
-from .utils.types import GoogleDrive, GoogleFolder, GoogleDoc, GooglePresentation, GoogleSheets
+from .utils.types import GoogleWorkspaceApp, GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
 from .utils.types import folderType, docsType, sheetsType, presentationType
 from .utils.connection import drive_service, doc_service, sheet_service, slides_service
 from .core import node
@@ -80,7 +80,7 @@ def coordinator_contact(processor: ProcessorInterface, kobj: KnowledgeObject):
 
 @node.processor.register_handler(HandlerType.Manifest)
 def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
-    if type(kobj.rid) == GoogleDrive:
+    if type(kobj.rid) == GoogleWorkspaceApp:
         logger.debug("Skipping HackMD note manifest handling")
         return
     
@@ -104,9 +104,9 @@ def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject
     return kobj
 
 
-@node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDrive])
+@node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleWorkspaceApp])
 def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
-    assert type(kobj.rid) == GoogleDrive
+    assert type(kobj.rid) == GoogleWorkspaceApp
     
     prev_bundle = processor.cache.read(kobj.rid)
     
@@ -133,7 +133,7 @@ def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeO
     reference = prev_bundle.rid.reference
 
     logger.debug("Retrieving full content...")
-    if namespace == GoogleFolder.namespace:
+    if namespace == GoogleDriveFolder.namespace:
         logger.debug(f"Retrieving: {folderType}")
         data = drive_service.files().get(fileId=reference).google_object(folderType).execute()
     elif namespace == GoogleDoc.namespace:
@@ -142,7 +142,7 @@ def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeO
     elif namespace == GoogleSheets.namespace:
         logger.debug(f"Retrieving: {sheetsType}")
         data = sheet_service.spreadsheets().get(spreadsheetId=reference).execute()
-    elif namespace == GooglePresentation.namespace:
+    elif namespace == GoogleSlides.namespace:
         logger.debug(f"Retrieving: {presentationType}")
         data = slides_service.presentations().get(presentationId=reference).execute()
     else:
@@ -164,9 +164,9 @@ def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeO
     
     return kobj
 
-@node.processor.register_handler(HandlerType.RID, rid_types=[GoogleDrive])
+@node.processor.register_handler(HandlerType.RID, rid_types=[GoogleWorkspaceApp])
 def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
-    rid: GoogleDrive = kobj.rid
+    rid: GoogleWorkspaceApp = kobj.rid
     ts = float(rid.ts)
     
     global LAST_PROCESSED_TS

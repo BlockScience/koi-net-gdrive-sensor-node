@@ -1,5 +1,5 @@
 import logging
-from .utils.types import GoogleDrive
+from .utils.types import GoogleWorkspaceApp
 from koi_net import NodeInterface
 from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
 from koi_net.processor.default_handlers import (
@@ -18,8 +18,8 @@ node = NodeInterface(
         base_url=URL,
         node_type=NodeType.FULL,
         provides=NodeProvides(
-            event=[GoogleDrive],
-            state=[GoogleDrive]
+            event=[GoogleWorkspaceApp],
+            state=[GoogleWorkspaceApp]
         )
     ),
     use_kobj_processor_thread=True,
