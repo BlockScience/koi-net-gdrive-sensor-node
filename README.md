@@ -15,12 +15,12 @@
     mkdir net/metadata
     ```
 
-2. **Authorization Script:**
+2. **Self-Authentication:**
     * Execute the following steps in [Google API Quickstart](https://developers.google.com/workspace/drive/api/quickstart/python):
 
         0. [Prerequisites](https://developers.google.com/workspace/drive/api/quickstart/python#prerequisites)
 
-        1. [Set up your environment](https://developers.google.com/workspace/drive/api/quickstart/python#set-up-environment)
+        1. [Set up your environment (In Google Cloud API)](https://developers.google.com/workspace/drive/api/quickstart/python#set-up-environment)
 
         2. [Install the client library](https://developers.google.com/workspace/drive/api/quickstart/python#authorize_credentials_for_a_desktop_application)
 
