@@ -15,7 +15,7 @@
     mkdir net/metadata
     ```
 
-2. **Self-Authentication:**
+2. **Authentication:**
     * Execute the following steps in [Google API Quickstart](https://developers.google.com/workspace/drive/api/quickstart/python):
 
         0. [Prerequisites](https://developers.google.com/workspace/drive/api/quickstart/python#prerequisites)
