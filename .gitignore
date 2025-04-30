@@ -13,6 +13,8 @@ credentials.json
 todo.md
 old/
 
+creds
+
 gdrive_sensor/credentials.json
 
 gdrive_sensor/coordinator_node_rid_cache

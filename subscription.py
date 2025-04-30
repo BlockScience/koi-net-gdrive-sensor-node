@@ -20,7 +20,9 @@ def fetch_start_page_token(service):
 
     # pylint: disable=maybe-no-member
     response = service.changes().getStartPageToken().execute()
-    print(f'Start token: {response.get("startPageToken")}')
+    # print(f'Start token: {response.get("startPageToken")}')
+    # print(response)
+    return response.get("startPageToken")
 
   except HttpError as error:
     print(f"An error occurred: {error}")
@@ -28,6 +30,7 @@ def fetch_start_page_token(service):
 
   return response.get("startPageToken")
 
+# start_page_token = fetch_start_page_token(service=drive_service)
 
 def fetch_changes(service, saved_start_page_token):
   """Retrieve the list of changes for the currently authenticated user.
@@ -70,11 +73,9 @@ def fetch_changes(service, saved_start_page_token):
 
   return saved_start_page_token
 
-
-start_page_token = fetch_start_page_token(service=drive_service)
-changes = fetch_changes(service=drive_service, saved_start_page_token=start_page_token)
-print("Changes:")
-pprint(changes)
+# changes = fetch_changes(service=drive_service, saved_start_page_token=start_page_token)
+# print("Changes:")
+# pprint(changes)
 
 def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
     channel_id = str(uuid.uuid4())  # Generate a unique channel ID
@@ -91,13 +92,18 @@ def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
     try:
         # Call the changes.watch method
         response = drive_service.changes().watch(pageToken=start_page_token, body=resource).execute()
-        print(f"Subscribed to Drive changes with channel ID: {response['id']}")
-        print()
+        # print(f"Subscribed to Drive changes with channel ID: {response['id']}")
+        # print()
         pprint(response)
+        return response['id']
     except HttpError as error:
         print(f"An error occurred: {error}")
 
-subscribe_to_drive_changes(start_page_token)
+# start_page_token = fetch_start_page_token(service=drive_service)
+# channel_id = subscribe_to_drive_changes(start_page_token=start_page_token, host='0.0.0.0')
+# print()
+# print(start_page_token)
+# print(channel_id)
 
 def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str, channel_address: str):
     # Create the resource for the channel
@@ -113,7 +119,8 @@ def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str,
     try:
         # Subscribe to changes for the specified file
         response = drive_service.changes().watch(
-            pageToken=start_page_token,
+            # pageToken=start_page_token,
+            pageToken=channel_token,
             body=resource
         ).execute()
         
@@ -123,15 +130,20 @@ def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str,
         print(f"An error occurred while subscribing to file changes: {e}")
         return None
 
-file_id = 'YOUR_FILE_ID'  # Replace with the actual file ID
-channel_id = 'YOUR_CHANNEL_ID'  # Unique ID for the channel
-channel_token = 'YOUR_CHANNEL_TOKEN'  # Token for the channel (optional)
+file_id = '1hjLliYLOgDWGpSI1sh3I0TgxsBRqQUAWLaI2oYNxG6g'  # Replace with the actual file ID
+channel_token = fetch_start_page_token(service=drive_service)  # Token for the channel (optional)
 webhook_host: str = '0.0.0.0'
+channel_id = subscribe_to_drive_changes(start_page_token=channel_token, host=webhook_host)  # Unique ID for the channel
 channel_address = f'https://{webhook_host}/notifications'  # URL to receive notifications
+print()
+print(file_id)
+print(channel_id)
+print(channel_token)
+print(channel_address)
 
-# response = subscribe_to_file_changes(file_id, channel_id, channel_token, channel_address)
+response = subscribe_to_file_changes(file_id, channel_id, channel_token, channel_address)
 
-# if response:
-#     print("Subscription response:", response)
-# else:
-#     print("Failed to subscribe to file changes.")
+if response:
+    print("Subscription response:", response)
+else:
+    print("Failed to subscribe to file changes.")

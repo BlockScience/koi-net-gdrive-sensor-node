@@ -5,15 +5,15 @@ load_dotenv()
 
 ROOT = os.getcwd()
 SENSOR = f'{ROOT}/gdrive_sensor'
+CREDENTIALS = f'{ROOT}/creds/service_account/gdrive-sensor-cred.json'
+SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]
 
 HOST = "127.0.0.1"
 PORT = 8002
-# PORT = 5000
 URL = f"http://{HOST}:{PORT}/koi-net"
 
 FIRST_CONTACT = "http://127.0.0.1:8000/koi-net"
-
-GDRIVE_API_TOKEN = os.environ["GDRIVE_API_TOKEN"]
 
 try:
     with open("state.json", "r") as f:
