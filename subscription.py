@@ -141,9 +141,9 @@ print(channel_id)
 print(channel_token)
 print(channel_address)
 
-response = subscribe_to_file_changes(file_id, channel_id, channel_token, channel_address)
+# response = subscribe_to_file_changes(file_id, channel_id, channel_token, channel_address)
 
-if response:
-    print("Subscription response:", response)
-else:
-    print("Failed to subscribe to file changes.")
+# if response:
+#     print("Subscription response:", response)
+# else:
+#     print("Failed to subscribe to file changes.")
