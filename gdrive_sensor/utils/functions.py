@@ -1,12 +1,14 @@
-import os
 from pprint import pprint
-from rid_lib.ext import Cache, Effector, CacheBundle, Event, EventType
+from rid_lib.ext import Cache, Effector, Bundle
+from koi_net.protocol.event import Event, EventType
 
-from utils import get_parent_ids
-from utils.connection import drive_service, doc_service, sheet_service, slides_service
-from utils.types import GoogleDrive, GoogleDoc, docsType, folderType, sheetsType, presentationType
+from . import get_parent_ids
+from .connection import drive_service, doc_service, sheet_service, slides_service
+from .types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
 
-cache = Cache(f"{os.getcwd()}/my_cache")
+from ..config import SENSOR
+
+cache = Cache(f"{SENSOR}/my_cache")
 effector = Effector(cache)
 
 def bundle_dir(item: dict):
@@ -14,20 +16,23 @@ def bundle_dir(item: dict):
         print(f"Required MIME type for document: {folderType}")
         raise ValueError(f"Invalid MIME type for document: {item['mimeType']}")
 
-def publish(rid_obj, bundle, event_type):
-    publish_event = None
-    if event_type is EventType.NEW:
-        publish_event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=bundle.manifest)
-    elif event_type is EventType.UPDATE:
-        publish_event = Event(rid=rid_obj, event_type=EventType.UPDATE, manifest=bundle.manifest)
+# def publish(rid_obj, manifest, event_type):
+#     publish_event = None
+#     if event_type is EventType.NEW:
+#         publish_event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=manifest)
+#     elif event_type is EventType.UPDATE:
+#         publish_event = Event(rid=rid_obj, event_type=EventType.UPDATE, manifest=manifest)
 
 def bundle_obj(item: dict, content: dict):
-    rid_obj: GoogleDoc = GoogleDrive.from_reference(item['id']).google_object(item['mimeType'])
+    rid_obj = GoogleWorkspaceApp.from_reference(item['id']).google_object(item['mimeType'])
     if cache.exists(rid_obj) == False:
-        cache.bundle_and_write(rid=rid_obj, data=dict(content))
+        bundle = Bundle.generate(rid=rid_obj, contents=dict(content))
+        cache.write(bundle)
+        # cache.bundle_and_write(rid=rid_obj, data=dict(content))
     rid = rid_obj.__str__()
     print(rid)
-    bundle: CacheBundle = cache.read(rid)
+    # bundle: CacheBundle = cache.read(rid)
+    bundle: Bundle = cache.read(rid)
     return bundle
 
 def bundle_folder(item: dict):
@@ -67,8 +72,17 @@ def bundle_slides(item: dict):
 # list_all_folders_and_files_with_details
 
 
-def bundle_list(query: str):
-    results = drive_service.files().list(q=query).execute()
+def bundle_list(query: str, driveId: str = None):
+    results = None
+    if driveId is None:
+        results = drive_service.files().list(q=query).execute()
+    else:
+        results = drive_service.files().list(
+            q=query, 
+            driveId=driveId, 
+            includeItemsFromAllDrives=True, 
+            supportsAllDrives=True, 
+            corpora='drive').execute()
     items = results.get('files', [])
     
     # if not items:
@@ -96,16 +110,32 @@ def bundle_list(query: str):
             # bundles = bundles + parent_folder_bundles
     return bundles
 
-# Example usage
-query = f"'1OwnHDuusN9ZiFgUzmttR-cLDbU0sS4z3' in parents"
-# query = f"'koi' in parents"
-# query = f"mimeType='{folderType}' or mimeType!='{folderType}'"
-bundles = bundle_list(query)
-# pprint(bundles)
-# exit()
-bundle_dict = bundles[1].to_json()
-bundle_dict['contents'] = 'masked'
-# pprint(bundle_dict)
-# print(bundle_dict['contents']['path'])
-exit()
 
+def event_filter(bundles):
+    events = []
+    for bundle in bundles:
+        manifest = bundle.manifest
+        rid_obj = manifest.rid
+        event = Event(rid=rid_obj, event_type=EventType.NEW, manifest=manifest)
+        events.append(event)
+    return events
+
+def rid_filter(bundles):
+    rids = []
+    for bundle in bundles:
+        manifest = bundle.manifest
+        rid_obj = manifest.rid
+        rids.append(rid_obj)
+    return rids
+
+# List shared drives
+def list_shared_drives(service):
+    results = service.drives().list().execute()
+    drives = results.get('drives', [])
+
+    if not drives:
+        print('No shared drives found.')
+    else:
+        print('Shared drives:')
+        for drive in drives:
+            print(f"Drive ID: {drive['id']}, Name: {drive['name']}")

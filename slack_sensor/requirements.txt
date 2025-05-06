@@ -1,8 +1,0 @@
-rid-lib
-python-dotenv
-slack_bolt
-aiohttp
-jsondiff
-fastapi
-uvicorn
-httpx

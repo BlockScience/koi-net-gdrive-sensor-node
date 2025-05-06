@@ -1,4 +1,4 @@
-from utils.connection import drive_service, doc_service
+from .connection import drive_service, doc_service
 
 def get_parent_ids(item: dict):
     file_metadata = drive_service.files().get(fileId=item['id'], fields='parents').execute()
