@@ -20,3 +20,35 @@ try:
         LAST_PROCESSED_TS = json.load(f).get("last_processed_ts", 0)
 except FileNotFoundError:
     LAST_PROCESSED_TS = 0
+
+
+from pydantic import BaseModel, Field
+from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
+from koi_net.config import NodeConfig, EnvConfig, KoiNetConfig
+from gdrive_sensor.utils.types import GoogleWorkspaceApp
+
+
+class GDriveConfig(BaseModel):
+    team_path: str | None = "blockscience"
+
+class GDriveEnvConfig(EnvConfig):
+    gdrive_api_token: str | None = CREDENTIALS
+
+
+class GDriveSensorNodeConfig(NodeConfig):
+    koi_net: KoiNetConfig | None = Field(default_factory = lambda: 
+        KoiNetConfig(
+            node_name="gdrive-sensor",
+            first_contact=FIRST_CONTACT,
+            node_profile=NodeProfile(
+                base_url=URL,
+                node_type=NodeType.FULL,
+                provides=NodeProvides(
+                    event=[GoogleWorkspaceApp],
+                    state=[GoogleWorkspaceApp]
+                )
+            )
+        )
+    )
+    env: GDriveEnvConfig | None = Field(default_factory=GDriveEnvConfig)
+    gdrive: GDriveConfig | None = Field(default_factory=GDriveConfig)
