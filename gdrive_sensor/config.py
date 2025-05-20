@@ -29,7 +29,7 @@ from gdrive_sensor.utils.types import GoogleWorkspaceApp
 
 
 class GDriveConfig(BaseModel):
-    team_path: str | None = "blockscience"
+    drive_id: str | None = SHARED_DRIVE_ID
 
 class GDriveEnvConfig(EnvConfig):
     gdrive_api_token: str | None = CREDENTIALS
@@ -47,7 +47,8 @@ class GDriveSensorNodeConfig(NodeConfig):
                     event=[GoogleWorkspaceApp],
                     state=[GoogleWorkspaceApp]
                 )
-            )
+            ),
+            cache_directory_path=f"{ROOT}/net/metadata/gdrive_sensor_node_rid_cache"
         )
     )
     env: GDriveEnvConfig | None = Field(default_factory=GDriveEnvConfig)
