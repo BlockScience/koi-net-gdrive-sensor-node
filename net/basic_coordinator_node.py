@@ -56,7 +56,9 @@ class CoordinatorConfig(NodeConfig):
                     event=[KoiNetNode, KoiNetEdge],
                     state=[KoiNetNode, KoiNetEdge]
                 )
-            )
+            ),
+            cache_directory_path=f"{ROOT}/net/metadata/coordinator_node_rid_cache",
+            event_queues_path=f"{ROOT}/net/metadata/coordinator_node_event_queus.json"
         )
     )
 
