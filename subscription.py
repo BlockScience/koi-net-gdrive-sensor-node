@@ -1,10 +1,11 @@
 import uuid
 from googleapiclient.errors import HttpError
 from gdrive_sensor.utils.connection import drive_service
+from gdrive_sensor.config import SHARED_DRIVE_ID
 from pprint import pprint
 
-def fetch_start_page_token(service):
-  """Retrieve page token for the current state of the account.
+def fetch_start_page_token(service, drive_id=None):
+  """Retrieve page token for the current state of the account or a specific drive.
   Returns & prints : start page token
 
   Load pre-authorized user credentials from the environment.
@@ -19,7 +20,14 @@ def fetch_start_page_token(service):
     # service = drive_service
 
     # pylint: disable=maybe-no-member
-    response = service.changes().getStartPageToken().execute()
+    if drive_id:
+      response = service.changes().getStartPageToken(
+        driveId=drive_id, 
+        supportsAllDrives=True
+      ).execute()
+    else:
+      response = service.changes().getStartPageToken().execute()
+    
     # print(f'Start token: {response.get("startPageToken")}')
     # print(response)
     return response.get("startPageToken")
@@ -30,14 +38,14 @@ def fetch_start_page_token(service):
 
   return response.get("startPageToken")
 
-# start_page_token = fetch_start_page_token(service=drive_service)
 
-def fetch_changes(service, saved_start_page_token):
-  """Retrieve the list of changes for the currently authenticated user.
+def fetch_changes(service, saved_start_page_token, drive_id=None):
+  """Retrieve the list of changes for the currently authenticated user or a specific drive.
       prints changed file's ID
   Args:
       saved_start_page_token : StartPageToken for the current state of the
       account.
+      drive_id : Optional ID of the specific drive to retrieve changes from.
   Returns: saved start page token.
 
   Load pre-authorized user credentials from the environment.
@@ -56,9 +64,21 @@ def fetch_changes(service, saved_start_page_token):
     # pylint: disable=maybe-no-member
 
     while page_token is not None:
-      response = (
-          service.changes().list(pageToken=page_token, spaces="drive").execute()
-      )
+      if drive_id:
+        response = (
+            service.changes().list(
+               driveId=drive_id,
+               supportsAllDrives=True, 
+               includeItemsFromAllDrives=True, 
+               pageToken=page_token, 
+               spaces="drive"
+            ).execute()
+        )
+      else:
+        response = (
+            service.changes().list(pageToken=page_token, spaces="drive").execute()
+        )
+        
       for change in response.get("changes"):
         # Process change
         print(f'Change found for file: {change.get("fileId")}')
@@ -73,9 +93,20 @@ def fetch_changes(service, saved_start_page_token):
 
   return saved_start_page_token
 
-# changes = fetch_changes(service=drive_service, saved_start_page_token=start_page_token)
-# print("Changes:")
-# pprint(changes)
+start_page_token = fetch_start_page_token(
+  service=drive_service, drive_id=SHARED_DRIVE_ID
+)
+print("Start Page Token:")
+print(type(start_page_token))
+print(start_page_token)
+change_token = fetch_changes(
+  service=drive_service, drive_id=SHARED_DRIVE_ID, saved_start_page_token=start_page_token
+)
+print("Changes:")
+print(type(change_token))
+pprint(change_token)
+print("Eq:")
+pprint(start_page_token == change_token)
 
 def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
     channel_id = str(uuid.uuid4())  # Generate a unique channel ID
@@ -130,16 +161,16 @@ def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str,
         print(f"An error occurred while subscribing to file changes: {e}")
         return None
 
-file_id = '1hjLliYLOgDWGpSI1sh3I0TgxsBRqQUAWLaI2oYNxG6g'  # Replace with the actual file ID
-channel_token = fetch_start_page_token(service=drive_service)  # Token for the channel (optional)
-webhook_host: str = '0.0.0.0'
-channel_id = subscribe_to_drive_changes(start_page_token=channel_token, host=webhook_host)  # Unique ID for the channel
-channel_address = f'https://{webhook_host}/notifications'  # URL to receive notifications
-print()
-print(file_id)
-print(channel_id)
-print(channel_token)
-print(channel_address)
+# file_id = '1hjLliYLOgDWGpSI1sh3I0TgxsBRqQUAWLaI2oYNxG6g'  # Replace with the actual file ID
+# channel_token = fetch_start_page_token(service=drive_service)  # Token for the channel (optional)
+# webhook_host: str = '0.0.0.0'
+# channel_id = subscribe_to_drive_changes(start_page_token=channel_token, host=webhook_host)  # Unique ID for the channel
+# channel_address = f'https://{webhook_host}/notifications'  # URL to receive notifications
+# print()
+# print(file_id)
+# print(channel_id)
+# print(channel_token)
+# print(channel_address)
 
 # response = subscribe_to_file_changes(file_id, channel_id, channel_token, channel_address)
 

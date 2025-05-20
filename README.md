@@ -3,8 +3,8 @@
 
 1. **Setup Environment:**
     ```bash
-    git clone git@github.com:BlockScience/koi-sensors.git
-    cd koi-sensors
+    git clone git@github.com:BlockScience/koi-net-gdrive-sensor-node.git
+    cd koi-net-gdrive-sensor-node
     # Optional: Create Virtual Environment
     # python -m venv ./venv
     # source ./venv/bin/activate

@@ -9,11 +9,15 @@ from koi_net.protocol.node import NodeProfile
 from koi_net.protocol.helpers import generate_edge_bundle
 from rid_lib.ext import Bundle
 from rid_lib.types import KoiNetNode
+from gdrive_sensor.utils.functions import handle_bundle_changes, fetch_changes
 
 from .utils.types import GoogleWorkspaceApp, GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
 from .utils.types import folderType, docsType, sheetsType, presentationType
 from .utils.connection import drive_service, doc_service, sheet_service, slides_service
 from .core import node
+from pprint import pprint
+
+from gdrive_sensor.config import SHARED_DRIVE_ID
 
 # from .config import LAST_PROCESSED_TS
 # from . import hackmd_api
@@ -81,7 +85,7 @@ def coordinator_contact(processor: ProcessorInterface, kobj: KnowledgeObject):
 @node.processor.register_handler(HandlerType.Manifest)
 def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     if type(kobj.rid) == GoogleWorkspaceApp:
-        logger.debug("Skipping HackMD note manifest handling")
+        logger.debug("Skipping Google Workspace App manifest handling")
         return
     
     prev_bundle = processor.cache.read(kobj.rid)
@@ -105,19 +109,37 @@ def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject
 
 
 @node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleWorkspaceApp])
-def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
+def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     assert type(kobj.rid) == GoogleWorkspaceApp
     
     prev_bundle = processor.cache.read(kobj.rid)
-    
-    if prev_bundle:
-        prevChangedAt = prev_bundle.contents["lastChangedAt"]
-        currChangedAt = kobj.contents["lastChangedAt"]
-        logger.debug(f"Changed at {prevChangedAt} -> {currChangedAt}")
-        if currChangedAt > prevChangedAt:
-            logger.debug("Incoming note has been changed more recently!")
-            kobj.normalized_event_type = EventType.UPDATE
-            
+    # pprint(prev_bundle)
+    start_token = prev_bundle.contents['start_token']
+    change_token = prev_bundle.contents['change_token']
+    # change_token = prev_bundle.contents['change_token'] = fetch_changes(
+    #     service=drive_service, drive_id=SHARED_DRIVE_ID, saved_start_page_token=start_token
+    # )
+    print()
+    print(start_token)
+    print()
+    print(change_token)
+    # exit()
+
+
+    # print('bye')
+    logger.debug("bye")
+    # if prev_bundle:
+    if change_token != start_token:
+        # prevChangedAt = prev_bundle.contents["lastChangedAt"]
+        # currChangedAt = kobj.contents["lastChangedAt"]
+        logger.debug("Incoming note has been changed more recently!")
+        # if currChangedAt > prevChangedAt:
+        if change_token > start_token:
+            logger.debug(f"Changed at {change_token} -> {start_token}")
+            file_id = kobj.rid.reference()
+            changed_bundle = handle_bundle_changes(id=file_id, driveId=None, pageToken=change_token)[0]
+            kobj.from_bundle(changed_bundle)
+            kobj.normalized_event_type = EventType.UPDATE      
         else:
             logger.debug("Incoming note is not newer")
             return STOP_CHAIN
@@ -131,6 +153,7 @@ def custom_hackmd_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeO
     
     namespace = prev_bundle.rid.namespace
     reference = prev_bundle.rid.reference
+    # logger.debug("reference")
 
     logger.debug("Retrieving full content...")
     if namespace == GoogleDriveFolder.namespace:

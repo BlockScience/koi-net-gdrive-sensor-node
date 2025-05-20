@@ -5,8 +5,10 @@ from koi_net.protocol.event import Event, EventType
 from . import get_parent_ids
 from .connection import drive_service, doc_service, sheet_service, slides_service
 from .types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
+from googleapiclient.errors import HttpError
 
 from ..config import SENSOR
+
 
 cache = Cache(f"{SENSOR}/my_cache")
 effector = Effector(cache)
@@ -70,19 +72,44 @@ def bundle_slides(item: dict):
 
 # Function to list types, names, IDs, and URIs of all folders and files in Google Drive
 # list_all_folders_and_files_with_details
+def fetch_start_page_token(service, drive_id=None):
+  """Retrieve page token for the current state of the account or a specific drive.
+  Returns & prints : start page token
 
-
-def bundle_list(query: str, driveId: str = None):
-    results = None
-    if driveId is None:
-        results = drive_service.files().list(q=query).execute()
+  Load pre-authorized user credentials from the environment.
+  TODO(developer) - See https://developers.google.com/identity
+  for guides on implementing OAuth2 for the application.
+  """
+  try:
+    # pylint: disable=maybe-no-member
+    if drive_id:
+      response = service.changes().getStartPageToken(
+        driveId=drive_id,
+        supportsAllDrives=True
+      ).execute()
     else:
-        results = drive_service.files().list(
-            q=query, 
-            driveId=driveId, 
-            includeItemsFromAllDrives=True, 
-            supportsAllDrives=True, 
-            corpora='drive').execute()
+      response = service.changes().getStartPageToken().execute()
+    
+    # print(f'Start token: {response.get("startPageToken")}')
+    # print(response)
+    return response.get("startPageToken")
+
+  except HttpError as error:
+    print(f"An error occurred: {error}")
+    response = None
+
+  return response.get("startPageToken")
+
+def handle_bundle_changes(id: str, driveId: str = None, change_token: str = None):
+    results = None
+    results = drive_service.changes().list(
+        q=f"id='{id}'", 
+        driveId=driveId, 
+        includeItemsFromAllDrives=True, 
+        supportsAllDrives=True,
+        pageToken=change_token,
+        spaces='drive'
+    ).execute()
     items = results.get('files', [])
     
     # if not items:
@@ -110,6 +137,142 @@ def bundle_list(query: str, driveId: str = None):
             # bundles = bundles + parent_folder_bundles
     return bundles
 
+def fetch_files(drive_service, driveId, pageToken=None):
+    original_files = []
+    changed_files = []
+    
+    while True:
+        # Prepare the request with the page token if it exists
+        response = drive_service.files().list(
+            driveId=driveId, 
+            includeItemsFromAllDrives=True, 
+            supportsAllDrives=True,
+            pageToken=pageToken,
+            corpora='drive'
+        ).execute() # Use await here
+        
+        # Process the files in the response
+        original_files.extend(response.get('files', []))  # Collect original files
+        changed_files.extend(response.get('changedFiles', []))  # Collect changed files (if applicable)
+
+        # Get the next page token
+        page_token = response.get('nextPageToken')
+        if not page_token:  # Exit the loop if there are no more pages
+            break
+
+    return original_files, changed_files
+
+def filter_by_ids(files: list, ids: list):
+   filtered_files = [file for file in files if file['id'] in ids]
+
+def filter_by_changes(original_files, changed_files):
+   changed_ids = [file['id'] for file in changed_files]
+   unchanged_files = [file for file in original_files if file['id'] not in changed_ids]
+   changed_files = filter_by_ids(changed_files, original_ids)
+   
+
+def bundle_list(query: str = None, driveId: str = None, pageToken: str = None):
+    results = None
+    
+    if driveId is None and pageToken is None:
+        results = drive_service.files().list(q=query).execute()
+    elif driveId is None and pageToken is not None:
+        results = drive_service.changes().list(q=query, pageToken=pageToken).execute()
+    elif driveId is not None and pageToken is not None:
+        results = drive_service.changes().list(
+            # q=query, 
+            driveId=driveId, 
+            includeItemsFromAllDrives=True, 
+            supportsAllDrives=True,
+            pageToken=pageToken,
+            spaces='drive'
+        ).execute()
+    elif driveId is not None and pageToken is None:
+        results = drive_service.files().list(
+            # q=query, 
+            driveId=driveId, 
+            includeItemsFromAllDrives=True, 
+            supportsAllDrives=True,
+            corpora='drive'
+        ).execute()
+    page_token = results.get('nextPageToken')
+    items = results.get('files', [])
+    
+    # if not items:
+    #     print('No folder found.')
+    #     raise ValueError(f"Invalid MIME type for document: {item['mimeType']}")
+    bundles = []
+    for item in items:
+        # print(item)
+        # print()
+        file_type = "Folder" if item['mimeType'] == folderType else "File"
+        if file_type == "Folder":
+           bundle = bundle_folder(item)
+        elif file_type == "File":
+            if item['mimeType'] == docsType:
+                # bundle_object = bundle_doc
+                bundle = bundle_doc(item)
+            elif item['mimeType'] == sheetsType:
+                # bundle_object = bundle_sheet
+                bundle = bundle_sheet(item)
+            elif item['mimeType'] == presentationType:
+                # bundle_object = bundle_slides
+                bundle = bundle_slides(item)
+            bundle.contents['nextPageToken'] = page_token
+            bundles.append(bundle)
+            # parent_folder_bundles = bundle_parent_folders(item)
+            # bundles = bundles + parent_folder_bundles
+    return bundles
+
+
+def fetch_changes(service, saved_start_page_token, drive_id=None):
+  """Retrieve the list of changes for the currently authenticated user or a specific drive.
+      prints changed file's ID
+  Args:
+      saved_start_page_token : StartPageToken for the current state of the
+      account.
+      drive_id : Optional ID of the specific drive to retrieve changes from.
+  Returns: saved start page token.
+
+  Load pre-authorized user credentials from the environment.
+  TODO(developer) - See https://developers.google.com/identity
+  for guides on implementing OAuth2 for the application.
+  """
+  try:
+    # Begin with our last saved start token for this user or the
+    # current token from getStartPageToken()
+    page_token = saved_start_page_token
+    # pylint: disable=maybe-no-member
+
+    while page_token is not None:
+      if drive_id:
+        response = (
+            service.changes().list(
+               driveId=drive_id,
+               supportsAllDrives=True, 
+               includeItemsFromAllDrives=True, 
+               pageToken=page_token, 
+               spaces="drive"
+            ).execute()
+        )
+      else:
+        response = (
+            service.changes().list(pageToken=page_token, spaces="drive").execute()
+        )
+        
+      for change in response.get("changes"):
+        # Process change
+        print(f'Change found for file: {change.get("fileId")}')
+      if "newStartPageToken" in response:
+        # Last page, save this token for the next polling interval
+        saved_start_page_token = response.get("newStartPageToken")
+      page_token = response.get("nextPageToken")
+
+  except HttpError as error:
+    print(f"An error occurred: {error}")
+    saved_start_page_token = None
+
+    return saved_start_page_token
 
 def event_filter(bundles):
     events = []
