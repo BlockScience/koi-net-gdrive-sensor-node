@@ -1,6 +1,6 @@
 import os, pickle
-from ..config import CREDENTIALS, SCOPES
-from googleapiclient.discovery import build, Resource
+from .. import CREDENTIALS, SCOPES
+from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 
@@ -14,7 +14,10 @@ def create_drive_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(
+                client_secrets_file=CREDENTIALS, 
+                scopes=SCOPES
+            )
             creds = flow.run_local_server(port=0)
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)

@@ -1,6 +1,7 @@
-import json
+import json, os
 import logging
 import uvicorn
+from pydantic import Field
 from contextlib import asynccontextmanager
 from rich.logging import RichHandler
 from fastapi import FastAPI
@@ -13,6 +14,7 @@ from koi_net.protocol.event import Event, EventType
 from koi_net.protocol.helpers import generate_edge_bundle
 from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
 from koi_net.processor import ProcessorInterface
+from koi_net.config import NodeConfig, KoiNetConfig
 from koi_net.protocol.api_models import (
     PollEvents,
     FetchRids,
@@ -30,8 +32,7 @@ from koi_net.protocol.consts import (
     FETCH_MANIFESTS_PATH,
     FETCH_BUNDLES_PATH
 )
-
-from gdrive_sensor.config import ROOT
+from gdrive_sensor import ROOT
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,21 +45,30 @@ logging.getLogger("koi_net").setLevel(logging.DEBUG)
 
 port = 8000
 
-node = NodeInterface(
-    name="coordinator",
-    profile=NodeProfile(
-        base_url=f"http://127.0.0.1:{port}/koi-net",
-        node_type=NodeType.FULL,
-        provides=NodeProvides(
-            event=[KoiNetNode, KoiNetEdge],
-            state=[KoiNetNode, KoiNetEdge]
+class CoordinatorConfig(NodeConfig):
+    koi_net: KoiNetConfig | None = Field(default_factory = lambda:
+        KoiNetConfig(
+            node_name="coordinator",
+            node_profile=NodeProfile(
+                node_type=NodeType.FULL,
+                provides=NodeProvides(
+                    event=[KoiNetNode, KoiNetEdge],
+                    state=[KoiNetNode, KoiNetEdge]
+                )
+            ),
+            cache_directory_path=f"{ROOT}/net/metadata/coordinator_node_rid_cache",
+            event_queues_path=f"{ROOT}/net/metadata/coordinator_node_event_queus.json"
         )
-    ),
+    )
+
+node = NodeInterface(
+    config=CoordinatorConfig.load_from_yaml(f"{ROOT}/net/metadata/coordinator_config.yaml"),
     use_kobj_processor_thread=True,
     # cache_directory_path="coordinator_node_rid_cache",
-    cache_directory_path=f"{ROOT}/net/metadata/coordinator_node_rid_cache",
-    event_queues_file_path=f"{ROOT}/net/metadata/coordinator_node_event_queus.json",
-    identity_file_path=f"{ROOT}/net/metadata/coordinator_node_identity.json",
+    # cache_directory_path=f"{ROOT}/net/metadata/coordinator_node_rid_cache",
+    # cache=f"{ROOT}/net/metadata/coordinator_node_rid_cache",
+    # event_queues_file_path=f"{ROOT}/net/metadata/coordinator_node_event_queus.json",
+    # identity_file_path=f"{ROOT}/net/metadata/coordinator_node_identity.json",
 )
 
 

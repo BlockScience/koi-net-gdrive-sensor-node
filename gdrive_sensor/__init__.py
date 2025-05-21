@@ -1,6 +1,11 @@
-import os
-import logging
+import logging, os
 from rich.logging import RichHandler
+
+ROOT = os.getcwd()
+SENSOR = f'{ROOT}/gdrive_sensor'
+CREDENTIALS = f'{ROOT}/creds/service_account/gdrive-sensor-cred.json'
+SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
