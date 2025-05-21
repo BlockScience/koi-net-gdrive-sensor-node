@@ -4,7 +4,8 @@ from .utils.functions import bundle_list
 from .core import node
 from .utils.connection import drive_service
 from gdrive_sensor.utils.functions import fetch_start_page_token, fetch_changes
-from pprint import pprint
+from koi_net.processor.knowledge_object import KnowledgeSource
+# from pprint import pprint
 
 # ToDo: trim down bundle list to GoogleDrive File such that handler derefs specific file types
 
@@ -29,10 +30,10 @@ async def backfill(driveId=node.config.gdrive.drive_id):
 
     for bundle in bundles:
         bundle.contents['start_token'] = start_token
-        bundle.contents['change_token'] = fetch_changes(
-            service=drive_service, drive_id=driveId, saved_start_page_token=start_token
-        )
-        node.processor.handle(bundle=bundle)
+        # bundle.contents['change_token'] = fetch_changes(
+        #     service=drive_service, drive_id=driveId, saved_start_page_token=start_token
+        # )
+        node.processor.handle(bundle=bundle, source=KnowledgeSource.Internal)
         
 if __name__ == "__main__":
     node.start()

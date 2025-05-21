@@ -6,6 +6,7 @@ from koi_net.processor.default_handlers import (
     basic_network_output_filter
 )
 from .config import ROOT, GDriveSensorNodeConfig
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -22,3 +23,4 @@ node = NodeInterface(
 )
 
 from . import handlers
+pprint(node.processor.handlers)

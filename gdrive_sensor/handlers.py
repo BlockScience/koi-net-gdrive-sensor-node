@@ -97,9 +97,9 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     # pprint(prev_bundle)
     start_token = prev_bundle.contents['start_token']
     change_token = prev_bundle.contents['change_token']
-    # change_token = prev_bundle.contents['change_token'] = fetch_changes(
-    #     service=drive_service, drive_id=SHARED_DRIVE_ID, saved_start_page_token=start_token
-    # )
+    change_token = prev_bundle.contents['change_token'] = fetch_changes(
+        service=drive_service, drive_id=node.config.gdrive.drive_id, saved_start_page_token=start_token
+    )
     print()
     print(start_token)
     print()
