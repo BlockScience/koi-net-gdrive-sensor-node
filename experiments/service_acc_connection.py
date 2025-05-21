@@ -1,8 +1,8 @@
 import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from gdrive_sensor.config import CREDENTIALS
-from gdrive_sensor.utils import list_shared_drives
+from gdrive_sensor import CREDENTIALS, SHARED_DRIVE_ID
+from gdrive_sensor.utils.functions import list_shared_drives
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,7 +22,7 @@ drive_service = build('drive', 'v3', credentials=creds)
 
 
 # Now you can access the shared folder with limited scope
-SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]  # Replace with your folder ID
+# SHARED_DRIVE_ID = SHARED_DRIVE_ID  # Replace with your folder ID
 # print(SHARED_DRIVE_ID)
 
 # List shared drives

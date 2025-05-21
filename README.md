@@ -19,15 +19,14 @@
 2. **Authentication Options:**
     1. Setup Developement Environment:
         
-        a. User Authentication: Quickstart / Testing Environment: Quickstart with Personal Google Account authentication and authorization flow
-            * Following the steps in [Google API Quickstart](https://developers.google.com/workspace/drive/api/quickstart/python)
+        a. User Authentication - Quickstart / Testing Environment: Quickstart with Personal Google Account authentication and authorization flow - Following the steps in [Google API Quickstart](https://developers.google.com/workspace/drive/api/quickstart/python)
         
         b. [Service Account Authentication:](https://developers.google.com/workspace/guides/create-credentials#service-account) A User Account dedicated to the GDrive Sensor Full   
             Node web application
     2. Execute the following for credential intgration test:
         ```bash
         # Run GDrive API 
-        python gdrive_api_exp.py
+        python -m experiments.gdrive_api_exp
         ```
 
 
