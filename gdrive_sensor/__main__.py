@@ -1,5 +1,4 @@
 import uvicorn
-# from .config import HOST, PORT
 from .core import node
 
 uvicorn.run(

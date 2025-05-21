@@ -1,4 +1,4 @@
-import json
+import json, os
 import logging
 import uvicorn
 from pydantic import Field
@@ -32,8 +32,7 @@ from koi_net.protocol.consts import (
     FETCH_MANIFESTS_PATH,
     FETCH_BUNDLES_PATH
 )
-
-from gdrive_sensor.config import ROOT
+from gdrive_sensor import ROOT
 
 logging.basicConfig(
     level=logging.INFO,

@@ -3,7 +3,6 @@ import asyncio
 from .utils.functions import bundle_list
 from .core import node
 from .utils.connection import drive_service
-from .config import SHARED_DRIVE_ID
 from gdrive_sensor.utils.functions import fetch_start_page_token, fetch_changes
 from pprint import pprint
 
@@ -12,7 +11,7 @@ from pprint import pprint
 logger = logging.getLogger(__name__)
 
 page_token = None
-async def backfill(driveId=SHARED_DRIVE_ID):
+async def backfill(driveId=node.config.gdrive.drive_id):
     query = f"\'{driveId}\' in parents"
     start_token = '24'
     # start_token = fetch_start_page_token(
@@ -31,7 +30,7 @@ async def backfill(driveId=SHARED_DRIVE_ID):
     for bundle in bundles:
         bundle.contents['start_token'] = start_token
         bundle.contents['change_token'] = fetch_changes(
-            service=drive_service, drive_id=SHARED_DRIVE_ID, saved_start_page_token=start_token
+            service=drive_service, drive_id=driveId, saved_start_page_token=start_token
         )
         node.processor.handle(bundle=bundle)
         

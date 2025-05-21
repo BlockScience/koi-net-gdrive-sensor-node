@@ -1,17 +1,12 @@
-import os, json
+import json
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
+from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
+from koi_net.config import NodeConfig, EnvConfig, KoiNetConfig
+from gdrive_sensor.utils.types import GoogleWorkspaceApp
+from gdrive_sensor import ROOT, CREDENTIALS, SHARED_DRIVE_ID
 
 load_dotenv()
-
-ROOT = os.getcwd()
-SENSOR = f'{ROOT}/gdrive_sensor'
-CREDENTIALS = f'{ROOT}/creds/service_account/gdrive-sensor-cred.json'
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]
-
-# HOST = "127.0.0.1"
-# PORT = 8002
-# URL = f"http://{HOST}:{PORT}/koi-net"
 
 FIRST_CONTACT = "http://127.0.0.1:8000/koi-net"
 
@@ -21,18 +16,11 @@ try:
 except FileNotFoundError:
     LAST_PROCESSED_TS = 0
 
-
-from pydantic import BaseModel, Field
-from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
-from koi_net.config import NodeConfig, EnvConfig, KoiNetConfig
-from gdrive_sensor.utils.types import GoogleWorkspaceApp
-
-
 class GDriveConfig(BaseModel):
     drive_id: str | None = SHARED_DRIVE_ID
 
 class GDriveEnvConfig(EnvConfig):
-    gdrive_api_token: str | None = CREDENTIALS
+    api_credentials: str | None = CREDENTIALS
 
 class GDriveServerConfig(BaseModel):
     host: str | None = "127.0.0.1"
@@ -42,7 +30,6 @@ class GDriveServerConfig(BaseModel):
     @property
     def url(self) -> str:
         return f"http://{self.host}:{self.port}{self.path or ''}"
-
 
 class GDriveSensorNodeConfig(NodeConfig):
     koi_net: KoiNetConfig | None = Field(default_factory = lambda: 

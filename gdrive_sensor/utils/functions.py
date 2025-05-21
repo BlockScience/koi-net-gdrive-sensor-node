@@ -7,7 +7,7 @@ from .connection import drive_service, doc_service, sheet_service, slides_servic
 from .types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
 from googleapiclient.errors import HttpError
 
-from ..config import SENSOR
+from gdrive_sensor import SENSOR
 
 
 cache = Cache(f"{SENSOR}/my_cache")

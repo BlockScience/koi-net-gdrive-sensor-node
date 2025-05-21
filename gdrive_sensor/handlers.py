@@ -16,26 +16,7 @@ from .utils.types import folderType, docsType, sheetsType, presentationType
 from .utils.connection import drive_service, doc_service, sheet_service, slides_service
 from .core import node
 from pprint import pprint
-
-from gdrive_sensor.config import SHARED_DRIVE_ID
-
-# from .config import LAST_PROCESSED_TS
-# from . import hackmd_api
-
-# import logging
-# import json
-# from koi_net.processor.handler import HandlerType
-# from koi_net.processor.knowledge_object import KnowledgeSource, KnowledgeObject
-# from koi_net.processor.interface import ProcessorInterface
-# from koi_net.protocol.event import EventType
-# from koi_net.protocol.edge import EdgeType
-# from koi_net.protocol.node import NodeProfile
-# from koi_net.protocol.helpers import generate_edge_bundle
-# # from rid_lib.types import KoiNetNode, SlackMessage
-# from rid_lib.types import KoiNetNode
-
-# # from .config import LAST_PROCESSED_TS
-# from .core import node
+# from .config import LAST_PROCESSED_TSe
 
 logger = logging.getLogger(__name__)
 
