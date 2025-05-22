@@ -7,9 +7,11 @@ from .connection import drive_service, doc_service, sheet_service, slides_servic
 from .types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
 from googleapiclient.errors import HttpError
 
-from gdrive_sensor import SENSOR
+from gdrive_sensor import ROOT, SENSOR
 
 
+# cache = Cache(f"{SENSOR}/my_cache")
+# cache = Cache(f"{ROOT}/net/metadata/gdrive_sensor_node_rid_cache")
 cache = Cache(f"{SENSOR}/my_cache")
 effector = Effector(cache)
 
@@ -100,17 +102,54 @@ def fetch_start_page_token(service, drive_id=None):
 
   return response.get("startPageToken")
 
-def handle_bundle_changes(id: str, driveId: str = None, change_token: str = None):
-    results = None
+def get_new_start_page_token(driveId, start_token):
     results = drive_service.changes().list(
-        q=f"id='{id}'", 
         driveId=driveId, 
         includeItemsFromAllDrives=True, 
         supportsAllDrives=True,
-        pageToken=change_token,
+        pageToken=start_token,
         spaces='drive'
     ).execute()
-    items = results.get('files', [])
+    
+    # Extract the next page token
+    next_page_token = results.get('newStartPageToken')
+    
+    return next_page_token
+
+# def handle_bundle_change(id: str):
+#     item = drive_service.files().get(fileId=id).execute()
+    
+#     # if not items:
+#     #     print('No folder found.')
+#     #     raise ValueError(f"Invalid MIME type for document: {item['mimeType']}")
+   
+#     file_type = "Folder" if item['mimeType'] == folderType else "File"
+#     if file_type == "Folder":
+#         bundle = bundle_folder(item)
+#     elif file_type == "File":
+#         if item['mimeType'] == docsType:
+#             # bundle_object = bundle_doc
+#             bundle = bundle_doc(item)
+#         elif item['mimeType'] == sheetsType:
+#             # bundle_object = bundle_sheet
+#             bundle = bundle_sheet(item)
+#         elif item['mimeType'] == presentationType:
+#             # bundle_object = bundle_slides
+#             bundle = bundle_slides(item)
+#         # parent_folder_bundles = bundle_parent_folders(item)
+#         # bundles = bundles + parent_folder_bundles
+#     return bundle
+
+def handle_bundle_changes(driveId: str = None, pageToken: str = None):
+    results = None
+    results = drive_service.changes().list(
+        driveId=driveId, 
+        includeItemsFromAllDrives=True, 
+        supportsAllDrives=True,
+        pageToken=pageToken,
+        spaces='drive'
+    ).execute()
+    items = results.get('changes', [])
     
     # if not items:
     #     print('No folder found.')
@@ -260,13 +299,15 @@ def fetch_changes(service, saved_start_page_token, drive_id=None):
             service.changes().list(pageToken=page_token, spaces="drive").execute()
         )
         
-      for change in response.get("changes"):
+      changes = response.get("changes")  
+      for change in changes:
         # Process change
         print(f'Change found for file: {change.get("fileId")}')
       if "newStartPageToken" in response:
         # Last page, save this token for the next polling interval
         saved_start_page_token = response.get("newStartPageToken")
       page_token = response.get("nextPageToken")
+    return changes, saved_start_page_token
 
   except HttpError as error:
     print(f"An error occurred: {error}")
