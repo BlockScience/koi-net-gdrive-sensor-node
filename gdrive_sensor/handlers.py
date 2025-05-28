@@ -1,5 +1,5 @@
-import logging, json
-from multiprocessing import process
+import logging
+from datetime import datetime, timedelta
 from koi_net.processor.handler import HandlerType, STOP_CHAIN
 from koi_net.processor.knowledge_object import KnowledgeSource, KnowledgeObject
 from koi_net.processor.interface import ProcessorInterface
@@ -9,14 +9,13 @@ from koi_net.protocol.node import NodeProfile
 from koi_net.protocol.helpers import generate_edge_bundle
 from rid_lib.ext import Bundle
 from rid_lib.types import KoiNetNode
-from gdrive_sensor.utils.functions import fetch_start_page_token, fetch_changes
+from gdrive_sensor.utils.functions import is_file_new_with_revisions, is_file_deleted
 
 from .utils.types import GoogleWorkspaceApp, GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
 from .utils.types import folderType, docsType, sheetsType, presentationType
 from .utils.connection import drive_service, doc_service, sheet_service, slides_service
+from .utils.functions import get_FUN_event_type
 from .core import node
-from pprint import pprint
-# from .config import LAST_PROCESSED_TSe
 
 logger = logging.getLogger(__name__)
 
@@ -61,23 +60,23 @@ def coordinator_contact(processor: ProcessorInterface, kobj: KnowledgeObject):
         # will fetch remotely instead of checking local cache
         processor.handle(bundle=bundle, source=KnowledgeSource.External)
     logger.debug("Done")
+        
 
-
-@node.processor.register_handler(HandlerType.Manifest)
+@node.processor.register_handler(HandlerType.Manifest) #, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
 def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
-    if type(kobj.rid) == GoogleWorkspaceApp:
-        logger.debug("Skipping Google Workspace App manifest handling")
-        return
+    # if type(kobj.rid) in [GoogleDoc, GoogleSlides, GoogleSheets]:
+    #     logger.debug("Skipping Google Workspace App manifest handling")
+        # return
     
     prev_bundle = processor.cache.read(kobj.rid)
 
     if prev_bundle:
         if kobj.manifest.sha256_hash == prev_bundle.manifest.sha256_hash:
             logger.debug("Hash of incoming manifest is same as existing knowledge, ignoring")
-            # return STOP_CHAIN
+            return STOP_CHAIN
         if kobj.manifest.timestamp <= prev_bundle.manifest.timestamp:
             logger.debug("Timestamp of incoming manifest is the same or older than existing knowledge, ignoring")
-            # return STOP_CHAIN
+            return STOP_CHAIN
         
         logger.debug("RID previously known to me, labeling as 'UPDATE'")
         kobj.normalized_event_type = EventType.UPDATE
@@ -88,55 +87,60 @@ def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject
         
     return kobj
 
+# def get change
 
 @node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
 def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     assert type(kobj.rid) in [GoogleDoc, GoogleSlides, GoogleSheets]
-    logger.debug(kobj.rid)
-    logger.debug(kobj.rid.namespace)
-    logger.debug(kobj.rid.reference)
-
-    # current_bundle = kobj.bundle
+    # logger.debug(kobj.rid)
+    # logger.debug(kobj.rid.namespace)
+    # logger.debug(kobj.rid.reference)
+    # global START_PAGE_TOKEN, NEXT_PAGE_TOKEN #, CURRENT_PAGE_TOKEN, NEXT_PAGE_TOKEN
     prev_bundle = processor.cache.read(kobj.rid)
-    start_token = kobj.bundle.contents['start_token']
-    current_token = kobj.bundle.contents['current_token']
+    print(node.config.gdrive.start_page_token)
+    # print(CURRENT_PAGE_TOKEN)
+    print(node.config.gdrive.next_page_token)
+    print()
     
-    if prev_bundle:
-        if int(current_token) > int(start_token):
-            changes, start_token = fetch_changes(
-                service=drive_service, drive_id=node.config.gdrive.drive_id, saved_start_page_token=start_token
-            )
-            change_ids = [change['fileId'] for change in changes]
+    # change_ids = []
+    results = drive_service.changes().list(
+        driveId=node.config.gdrive.drive_id, 
+        includeItemsFromAllDrives=True, 
+        supportsAllDrives=True,
+        pageToken=node.config.gdrive.start_page_token,
+        includeRemoved=True,
+        spaces='drive'
+    ).execute()
+    changes = results.get('changes')
+    change_dict = {}
+    for change in changes:
+        if change['changeType'] == 'file':
+            change_dict[change['fileId']] = change
+    
+    change_ids = change_dict.keys()
+    new_start_page_token = results.get('newStartPageToken')
+    # change = None
+    if is_file_deleted(kobj.rid):
+        kobj.normalized_event_type = EventType.FORGET
+    else:
+        if prev_bundle:
+            # prev_bundle.manifest.timestamp
             if prev_bundle.rid.reference in change_ids:
                 logger.debug("Incoming note has been changed more recently!")
-                logger.debug(f"Page Changed from {start_token} to {current_token}")
-                # rid_changes = {}
-                for change in changes:
-                    rid_obj = GoogleWorkspaceApp.from_reference(change['fileId']).google_object(change['file']['mimeType'])
-                    # rid_changes[str(rid_obj)] = change
-                    if change['removed'] is False:
-                        kobj.normalized_event_type = EventType.UPDATE
-                    else:
-                        kobj.normalized_event_type = EventType.FORGET
-                bundle = prev_bundle
+                logger.debug(f"Page Token Changed from {node.config.gdrive.start_page_token} to {new_start_page_token}")
+                # kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj)
+                kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj.rid)
             else:
                 logger.debug("Incoming note is not newer")
                 return STOP_CHAIN
         else:
-            logger.debug("Incoming note is not newer")
-            return STOP_CHAIN
-    else:
-        logger.debug("Incoming note is previously unknown to me")
-        kobj.normalized_event_type = EventType.NEW
-    # elif kobj.rid not in rid_changes.keys():
-    #     logger.debug("Incoming note is previously unknown to me")
-    #     kobj.normalized_event_type = EventType.NEW
-    # else:
-    #     logger.debug("Incoming note is not newer")
-    #     return STOP_CHAIN
+            logger.debug("Incoming note is previously unknown to me")
+            if kobj.rid.reference in change_ids:
+                # kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj)
+                kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj.rid)
         
-    namespace = kobj.bundle.rid.namespace
-    reference = kobj.bundle.rid.reference
+    namespace = kobj.rid.namespace
+    reference = kobj.rid.reference
 
     logger.debug("Retrieving full content...")
     if namespace == GoogleDriveFolder.namespace:
@@ -164,30 +168,56 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
         rid=kobj.rid,
         contents=data
     )
-    full_note_bundle.contents['start_token'] = start_token
-    full_note_bundle.contents['current_token'] = current_token
-    # print(full_note_bundle.contents['start_token'])
-    # print(full_note_bundle.contents['current_token'])
-    # exit()
+
+    full_note_bundle.contents['page_token'] = new_start_page_token
     
     kobj.manifest = full_note_bundle.manifest
     kobj.contents = full_note_bundle.contents
-    # print(kobj.contents['start_token'])
-    # print(kobj.contents['current_token'])
-    # exit()
     
     return kobj
 
-@node.processor.register_handler(HandlerType.RID, rid_types=[GoogleWorkspaceApp])
-def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
-    rid: GoogleWorkspaceApp = kobj.rid
-    ts = float(rid.ts)
+# @node.processor.register_handler(HandlerType.Network, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
+# def pagination(processor: ProcessorInterface, kobj: KnowledgeObject):
+#     if kobj.normalized_event_type != EventType.NEW: 
+#         results = drive_service.changes().list(
+#             driveId=node.config.gdrive.drive_id, 
+#             includeItemsFromAllDrives=True, 
+#             supportsAllDrives=True,
+#             pageToken=node.config.gdrive.start_page_token,
+#             includeRemoved=True,
+#             spaces='drive'
+#         ).execute()
+#         # node.config.gdrive.start_page_token = results.get('newStartPageToken')
+#     logger.debug("Done")
+
+
+# @node.processor.register_handler(HandlerType.RID, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
+# def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
+#     # rid = kobj.rid
+#     dt = kobj.bundle.manifest.timestamp
+#     ts = dt.timestamp()
     
-    global LAST_PROCESSED_TS
-    if ts < LAST_PROCESSED_TS: 
-        return
+#     global LAST_PROCESSED_TS
+#     print(ts < LAST_PROCESSED_TS.timestamp())
+
+#     if ts < LAST_PROCESSED_TS: 
+#         return
     
-    LAST_PROCESSED_TS = ts
+#     LAST_PROCESSED_TS = ts
     
-    with open("state.json", "w") as f:
-        json.dump({"last_processed_ts": LAST_PROCESSED_TS}, f)
+#     with open("state.json", "w") as f:
+#         json.dump({"last_processed_ts": LAST_PROCESSED_TS}, f)
+
+# @node.processor.register_handler(HandlerType.RID, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
+# def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
+#     file_id = kobj.rid.reference
+#     file = drive_service.files().get(fileId=file_id, fields='modifiedTime', supportsAllDrives=True).execute()
+#     modified_time_str = file.get('modifiedTime')
+#     modified_time_dt = datetime.fromisoformat(modified_time_str[:-1]) if modified_time_str.endswith('Z') else datetime.fromisoformat(modified_time_str)
+#     # formated_modified_time_str = str(modified_time_dt)
+
+#     if modified_time_dt.timestamp() < float(node.config.gdrive.last_processed_ts):
+#         return
+    
+#     node.config.gdrive.last_processed_ts = modified_time_dt.timestamp()
+#     node.config.save_to_yaml()

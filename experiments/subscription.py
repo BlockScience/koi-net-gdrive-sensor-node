@@ -89,42 +89,43 @@ def fetch_changes(service, saved_start_page_token, drive_id=None):
 
     return saved_start_page_token
 
-# start_page_token = fetch_start_page_token(
-#   service=drive_service, drive_id=SHARED_DRIVE_ID
-# )
+start_page_token = fetch_start_page_token(
+  service=drive_service, drive_id=SHARED_DRIVE_ID
+)
+print(start_page_token)
 # print("Start Page Token:")
 # print(type(start_page_token))
 # print(start_page_token)
-start_page_token = 67
-change_token = fetch_changes(
-  service=drive_service, drive_id=SHARED_DRIVE_ID, saved_start_page_token=start_page_token
-)
-print("Changes:")
-print(type(change_token))
-pprint(change_token)
-print("Eq:")
-pprint(start_page_token == change_token)
+# start_page_token = 67
+# change_token = fetch_changes(
+#   service=drive_service, drive_id=SHARED_DRIVE_ID, saved_start_page_token=start_page_token
+# )
+# print("Changes:")
+# print(type(change_token))
+# pprint(change_token)
+# print("Eq:")
+# pprint(start_page_token == change_token)
 
 from gdrive_sensor.utils.functions import handle_bundle_changes
 from gdrive_sensor.utils.connection import drive_service
 from pprint import pprint
 
-file_id = "1xwMF6ANuy2qZ-kxUkNdReMU7ZMizQmmiG9G8ATACTn4"
-driveId = "0AJflT9JpikpnUk9PVA"
+# file_id = "1xwMF6ANuy2qZ-kxUkNdReMU7ZMizQmmiG9G8ATACTn4"
+# driveId = "0AJflT9JpikpnUk9PVA"
 # change_token = "76"
 # change_token = "67"
 
-results = drive_service.changes().list(
-    driveId=driveId, 
-    includeItemsFromAllDrives=True, 
-    supportsAllDrives=True,
-    pageToken=76,
-    spaces='drive'
-).execute()
-items = results.get('files', [])
+# results = drive_service.changes().list(
+#     driveId=driveId, 
+#     includeItemsFromAllDrives=True, 
+#     supportsAllDrives=True,
+#     pageToken=76,
+#     spaces='drive'
+# ).execute()
+# items = results.get('files', [])
 
 # item = handle_bundle_changes(id=file_id, driveId=driveId, pageToken=change_token)
-pprint(items)
+# pprint(items)
 
 
 def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):

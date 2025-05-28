@@ -1,11 +1,19 @@
 import logging, os
 from rich.logging import RichHandler
+from datetime import datetime
 
 ROOT = os.getcwd()
 SENSOR = f'{ROOT}/gdrive_sensor'
 CREDENTIALS = f'{ROOT}/creds/service_account/gdrive-sensor-cred.json'
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]
+# START_PAGE_TOKEN = '86'
+# CURRENT_PAGE_TOKEN = '86'
+START_PAGE_TOKEN = '67'
+# CURRENT_PAGE_TOKEN = '86'
+NEXT_PAGE_TOKEN = None
+
+LAST_PROCESSED_TS = datetime.now()
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
