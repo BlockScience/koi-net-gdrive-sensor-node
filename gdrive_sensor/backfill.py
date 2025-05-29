@@ -57,31 +57,50 @@ logger = logging.getLogger(__name__)
 #     #         else:
 #     #             node.processor.handle(bundle=bundle, event_type=EventType.NEW)
 
-async def backfill(driveId=node.config.gdrive.drive_id):
-    # global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
-    # query = f"\'{driveId}\' in parents"
+# import contextvars
+# start_page_token_var = contextvars.ContextVar('start_page_token')
+# next_page_token_var = contextvars.ContextVar('next_page_token')
+# start_page_token_var.set(node.config.gdrive.start_page_token)
+# next_page_token_var.set(node.config.gdrive.next_page_token)
+# ctx = contextvars.copy_context()
+
+async def backfill(
+        driveId: str = node.config.gdrive.drive_id, 
+        start_page_token: str = node.config.gdrive.start_page_token, 
+        next_page_token: str = node.config.gdrive.next_page_token
+    ):
     bundles = bundle_list(driveId=driveId)
-    # exit()
     logger.debug(f"Found {len(bundles)} in {driveId}")
-    
-    # results = drive_service.changes().list(
-    #     driveId=node.config.gdrive.drive_id, 
-    #     includeItemsFromAllDrives=True, 
-    #     supportsAllDrives=True,
-    #     pageToken=node.config.gdrive.start_page_token,
-    #     includeRemoved=True,
-    #     spaces='drive'
-    # ).execute()
 
     for bundle in bundles:
-        bundle.contents['page_token'] = node.config.gdrive.start_page_token
+        bundle.contents['page_token'] = start_page_token
         node.processor.handle(bundle=bundle)
-    # node.config.gdrive.start_page_token = results.get('newStartPageToken')
-    # node.config.gdrive.next_page_token = results.get('nextPageToken')
+    
+    results = drive_service.changes().list(
+        driveId=driveId, 
+        includeItemsFromAllDrives=True, 
+        supportsAllDrives=True,
+        pageToken=start_page_token,
+        includeRemoved=True,
+        spaces='drive'
+    ).execute()
+
+    start_page_token = results.get('newStartPageToken')
+    next_page_token = results.get('nextPageToken')
+
+    return start_page_token, next_page_token
            
-if __name__ == "__main__":
-    node.start()
-    asyncio.run(
-        backfill()
-    )
-    node.stop()
+# if __name__ == "__main__":
+    # node.start()
+    # with asyncio.Runner() as runner:
+    #     # node.config.gdrive.start_page_token, node.config.gdrive.next_page_token = runner.run(coro=backfill(), context=ctx)
+    #     # start_page_token_var.set(node.config.gdrive.start_page_token)
+    #     # next_page_token_var.set(node.config.gdrive.next_page_token)
+    #     # runner.run(coro=backfill(), context=ctx)
+    #     # runner.run(coro=backfill(), context=ctx)
+
+    #     runner.run(coro=lambda: print('hello'))
+    #     runner.run(coro=lambda: print('hello'))
+    #     exit()
+    #     # runner.run(coro=backfill(), context=ctx)
+    # node.stop()

@@ -22,15 +22,24 @@ from koi_net.protocol.consts import (
 )
 from .core import node
 from .backfill import backfill
+from gdrive_sensor import START_PAGE_TOKEN, NEXT_PAGE_TOKEN
 
 
 logger = logging.getLogger(__name__)
 
+def reset_backfill_parameters():
+    global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
+    node.config.gdrive.start_page_token = START_PAGE_TOKEN
+    node.config.gdrive.next_page_token = NEXT_PAGE_TOKEN
 
 async def backfill_loop():
+    global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
     while True:
-        await backfill()
+        START_PAGE_TOKEN, NEXT_PAGE_TOKEN = await backfill()
+        # await asyncio.sleep(20)
         await asyncio.sleep(600)
+        reset_backfill_parameters()
+        
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):    
