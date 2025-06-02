@@ -1,7 +1,7 @@
 import uuid
 from googleapiclient.errors import HttpError
 from gdrive_sensor.utils.connection import drive_service
-from gdrive_sensor.config import SHARED_DRIVE_ID
+from gdrive_sensor.config import SHARED_DRIVE_ID, START_PAGE_TOKEN
 from pprint import pprint
 
 def fetch_start_page_token(service, drive_id=None):
@@ -92,7 +92,7 @@ def fetch_changes(service, saved_start_page_token, drive_id=None):
 start_page_token = fetch_start_page_token(
   service=drive_service, drive_id=SHARED_DRIVE_ID
 )
-print(start_page_token)
+# print(start_page_token)
 # print("Start Page Token:")
 # print(type(start_page_token))
 # print(start_page_token)
@@ -106,7 +106,7 @@ print(start_page_token)
 # print("Eq:")
 # pprint(start_page_token == change_token)
 
-from gdrive_sensor.utils.functions import handle_bundle_changes
+# from gdrive_sensor.utils.functions import handle_bundle_changes
 from gdrive_sensor.utils.connection import drive_service
 from pprint import pprint
 
@@ -128,7 +128,7 @@ from pprint import pprint
 # pprint(items)
 
 
-def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
+def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0'):
     channel_id = str(uuid.uuid4())  # Generate a unique channel ID
     channel_address = f'https://{host}/notifications'  # Your webhook URL
     resource = {
@@ -142,7 +142,15 @@ def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
 
     try:
         # Call the changes.watch method
-        response = drive_service.changes().watch(pageToken=start_page_token, body=resource).execute()
+        response = drive_service.changes().watch(
+          driveId=driveId, 
+          includeItemsFromAllDrives=True, 
+          supportsAllDrives=True,
+          includeRemoved=True,
+          spaces='drive',
+          pageToken=start_page_token,
+          body=resource
+        ).execute()
         # print(f"Subscribed to Drive changes with channel ID: {response['id']}")
         # print()
         pprint(response)
@@ -151,10 +159,11 @@ def subscribe_to_drive_changes(start_page_token, host: str = '0.0.0.0'):
         print(f"An error occurred: {error}")
 
 # start_page_token = fetch_start_page_token(service=drive_service)
-# channel_id = subscribe_to_drive_changes(start_page_token=start_page_token, host='0.0.0.0')
-# print()
-# print(start_page_token)
-# print(channel_id)
+start_page_token = START_PAGE_TOKEN
+channel_id = subscribe_to_drive_changes(driveId=SHARED_DRIVE_ID, start_page_token=start_page_token, host='0.0.0.0')
+print()
+print(start_page_token)
+print(channel_id)
 
 def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str, channel_address: str):
     # Create the resource for the channel
@@ -170,7 +179,6 @@ def subscribe_to_file_changes(file_id: str, channel_id: str, channel_token: str,
     try:
         # Subscribe to changes for the specified file
         response = drive_service.changes().watch(
-            # pageToken=start_page_token,
             pageToken=channel_token,
             body=resource
         ).execute()

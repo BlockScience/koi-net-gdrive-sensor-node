@@ -1,6 +1,6 @@
 # from gdrive_sensor.utils.functions import handle_bundle_changes, get_new_start_page_token
 from gdrive_sensor.utils.connection import drive_service
-from gdrive_sensor import START_PAGE_TOKEN, CURRENT_PAGE_TOKEN, NEXT_PAGE_TOKEN
+# from gdrive_sensor import START_PAGE_TOKEN, CURRENT_PAGE_TOKEN, NEXT_PAGE_TOKEN
 from pprint import pprint
 
 file_id = "1xwMF6ANuy2qZ-kxUkNdReMU7ZMizQmmiG9G8ATACTn4"
@@ -13,14 +13,25 @@ driveId = "0AJflT9JpikpnUk9PVA"
 # START_PAGE_TOKEN = '67'
 # CURRENT_PAGE_TOKEN = '86'
 
+driveId = '0AJflT9JpikpnUk9PVA'
+start_page_token = '67'
+
 # results = drive_service.changes().list(
-#     driveId=driveId, 
-#     includeItemsFromAllDrives=True, 
-#     supportsAllDrives=True,
-#     pageToken=start_token,
-#     includeRemoved=True,
-#     spaces='drive'
-# ).execute()
+results = drive_service.changes().list(
+        driveId=driveId, 
+        includeItemsFromAllDrives=True, 
+        supportsAllDrives=True,
+        pageToken=start_page_token,
+        includeRemoved=True,
+        spaces='drive'
+    ).execute()
+
+start_page_token = results.get('newStartPageToken')
+next_page_token = results.get('nextPageToken')
+
+print(start_page_token)
+print(next_page_token)
+
 # changes = results.get('changes')
 # nextPageToken = results.get('nextPageToken')
 # newStartPageToken = results.get('newStartPageToken')
@@ -31,23 +42,23 @@ driveId = "0AJflT9JpikpnUk9PVA"
 # pprint(changes)
 
 
-results = drive_service.changes().list(
-    driveId=driveId, 
-    includeItemsFromAllDrives=True, 
-    supportsAllDrives=True,
-    pageToken='67',
-    includeRemoved=True,
-    includeCorpusRemovals=True,
-    spaces='drive'
-).execute()
-changes = results.get('changes')
-# nextPageToken = results.get('nextPageToken')
-# newStartPageToken = results.get('newStartPageToken')
-print()
-# print(nextPageToken)
-# print(newStartPageToken)
-print()
-pprint(changes)
+# results = drive_service.changes().list(
+#     driveId=driveId, 
+#     includeItemsFromAllDrives=True, 
+#     supportsAllDrives=True,
+#     pageToken='67',
+#     includeRemoved=True,
+#     includeCorpusRemovals=True,
+#     spaces='drive'
+# ).execute()
+# changes = results.get('changes')
+# # nextPageToken = results.get('nextPageToken')
+# # newStartPageToken = results.get('newStartPageToken')
+# print()
+# # print(nextPageToken)
+# # print(newStartPageToken)
+# print()
+# pprint(changes)
 
 # item = handle_bundle_changes(id=file_id, driveId=driveId, pageToken=change_token)
 # [item['fileId'] for item in items]

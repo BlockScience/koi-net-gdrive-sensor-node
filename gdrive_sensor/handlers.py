@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+# from datetime import datetime, timedelta
 from koi_net.processor.handler import HandlerType, STOP_CHAIN
 from koi_net.processor.knowledge_object import KnowledgeSource, KnowledgeObject
 from koi_net.processor.interface import ProcessorInterface
@@ -9,12 +9,12 @@ from koi_net.protocol.node import NodeProfile
 from koi_net.protocol.helpers import generate_edge_bundle
 from rid_lib.ext import Bundle
 from rid_lib.types import KoiNetNode
-from gdrive_sensor.utils.functions import is_file_new_with_revisions, is_file_deleted
 
-from .utils.types import GoogleWorkspaceApp, GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
+from .utils.types import GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
 from .utils.types import folderType, docsType, sheetsType, presentationType
 from .utils.connection import drive_service, doc_service, sheet_service, slides_service
-from .utils.functions import get_FUN_event_type
+from .utils.functions.events import get_FUN_event_type, is_file_deleted
+from .utils.functions.api import get_change_results
 from .core import node
 
 logger = logging.getLogger(__name__)
@@ -95,22 +95,13 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     # logger.debug(kobj.rid)
     # logger.debug(kobj.rid.namespace)
     # logger.debug(kobj.rid.reference)
-    # global START_PAGE_TOKEN, NEXT_PAGE_TOKEN #, CURRENT_PAGE_TOKEN, NEXT_PAGE_TOKEN
     prev_bundle = processor.cache.read(kobj.rid)
     print(node.config.gdrive.start_page_token)
-    # print(CURRENT_PAGE_TOKEN)
     print(node.config.gdrive.next_page_token)
     print()
     
     # change_ids = []
-    results = drive_service.changes().list(
-        driveId=node.config.gdrive.drive_id, 
-        includeItemsFromAllDrives=True, 
-        supportsAllDrives=True,
-        pageToken=node.config.gdrive.start_page_token,
-        includeRemoved=True,
-        spaces='drive'
-    ).execute()
+    results = get_change_results(node.config.gdrive.drive_id, node.config.gdrive.start_page_token)
     changes = results.get('changes')
     change_dict = {}
     for change in changes:
