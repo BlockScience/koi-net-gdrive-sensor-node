@@ -1,6 +1,9 @@
 import logging, os
 from rich.logging import RichHandler
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ROOT = os.getcwd()
 SENSOR = f'{ROOT}/gdrive_sensor'
