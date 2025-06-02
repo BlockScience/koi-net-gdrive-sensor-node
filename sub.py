@@ -6,7 +6,7 @@ from pprint import pprint
 
 def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0'):
     channel_id = str(uuid.uuid4())  # Generate a unique channel ID
-    channel_address = f'https://{host}/notifications'  # Your webhook URL
+    channel_address = f'https://{host}/google-drive-listener'  # Your webhook URL
     resource = {
         'id': channel_id,
         'type': 'web_hook',
@@ -36,7 +36,7 @@ def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0')
 
 # start_page_token = fetch_start_page_token(service=drive_service)
 start_page_token = START_PAGE_TOKEN
-channel_id = subscribe_to_drive_changes(driveId=SHARED_DRIVE_ID, start_page_token=start_page_token, host='0.0.0.0')
+channel_id = subscribe_to_drive_changes(driveId=SHARED_DRIVE_ID, start_page_token=start_page_token, host='koi-net.block.science')
 print()
 print(start_page_token)
 print(channel_id)
