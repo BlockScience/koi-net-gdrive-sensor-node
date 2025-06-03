@@ -1,6 +1,8 @@
 from gdrive_sensor import SENSOR
+from . import get_parent_ids
 from ..connection import drive_service, doc_service, sheet_service, slides_service
 from ..types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
+from rid_lib import RID
 from rid_lib.ext import Cache, Effector, Bundle
 
 
@@ -56,6 +58,22 @@ def bundle_slides(item: dict):
     raise_mimeTypeError(item, presentationType)
     presentation = slides_service.presentations().get(presentationId=item['id']).execute()
     return bundle_obj(item, presentation)
+
+def bundle_item(item):
+    file_type = "Folder" if item['mimeType'] == folderType else "File"
+    if file_type == "Folder":
+        bundle = bundle_folder(item)
+    elif file_type == "File":
+        if item['mimeType'] == docsType:
+            # bundle_object = bundle_doc
+            bundle = bundle_doc(item)
+        elif item['mimeType'] == sheetsType:
+            # bundle_object = bundle_sheet
+            bundle = bundle_sheet(item)
+        elif item['mimeType'] == presentationType:
+            # bundle_object = bundle_slides
+            bundle = bundle_slides(item)
+    return bundle
 
 
 def bundle_list(query: str = None, driveId: str = None, pageToken: str = None):
