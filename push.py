@@ -2,7 +2,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-@app.route('/notifications', methods=['POST'])
+@app.route('/google-drive-listener', methods=['POST'])
 def notifications():
     # Handle the notification
     print("Received notification:", request.headers)
