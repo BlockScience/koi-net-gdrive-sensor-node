@@ -36,11 +36,11 @@ def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0')
 
 
 # start_page_token = fetch_start_page_token(service=drive_service)
-# start_page_token = START_PAGE_TOKEN
-# channel_id = subscribe_to_drive_changes(driveId=SHARED_DRIVE_ID, start_page_token=start_page_token, host='koi-net.block.science')
-# print()
-# print(start_page_token)
-# print(channel_id)
+start_page_token = START_PAGE_TOKEN
+channel_id = subscribe_to_drive_changes(driveId=SHARED_DRIVE_ID, start_page_token=start_page_token, host='koi-net.block.science')
+print()
+print(start_page_token)
+print(channel_id)
 
 
 def subscribe_to_file_changes(fileId, host: str = '0.0.0.0'):
@@ -70,3 +70,10 @@ def subscribe_to_file_changes(fileId, host: str = '0.0.0.0'):
     except HttpError as error:
         print(f"An error occurred: {error}")
 
+
+# start_page_token = fetch_start_page_token(service=drive_service)
+# start_page_token = START_PAGE_TOKEN
+# channel_id = subscribe_to_file_changes(driveId=SHARED_DRIVE_ID, start_page_token=start_page_token, host='koi-net.block.science')
+# print()
+# print(start_page_token)
+# print(channel_id)
