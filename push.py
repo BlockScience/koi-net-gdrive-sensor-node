@@ -20,7 +20,7 @@ def notifications():
     
     state = request.headers['X-Goog-Resource-State']
     if state != 'sync':
-        file = drive_service.files().get(fileId=fileId).execute()
+        file = drive_service.files().get(fileId=fileId, supportsAllDrives=True).execute()
         mimeType = file.get('mimeType')
         rid_obj = GoogleWorkspaceApp.from_reference(fileId).google_object(mimeType)
         if state == 'untrash':

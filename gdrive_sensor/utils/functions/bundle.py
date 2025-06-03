@@ -34,7 +34,7 @@ def bundle_parent_folders(item: dict):
     parent_folder_ids = get_parent_ids(item)
     bundles = []
     for parent_folder_id in parent_folder_ids:
-        parent_item = drive_service.files().get(fileId=parent_folder_id).execute()
+        parent_item = drive_service.files().get(fileId=parent_folder_id, supportsAllDrives=True).execute()
         bundle = bundle_folder(parent_item)
         bundles.append(bundle)
     return bundles

@@ -136,7 +136,7 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     logger.debug("Retrieving full content...")
     if namespace == GoogleDriveFolder.namespace:
         logger.debug(f"Retrieving: {folderType}")
-        data = drive_service.files().get(fileId=reference).google_object(folderType).execute()
+        data = drive_service.files().get(fileId=reference, supportsAllDrives=True).google_object(folderType).execute()
     elif namespace == GoogleDoc.namespace:
         logger.debug(f"Retrieving: {docsType}")
         data = doc_service.documents().get(documentId=reference).execute()
@@ -147,7 +147,7 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
         logger.debug(f"Retrieving: {presentationType}")
         data = slides_service.presentations().get(presentationId=reference).execute()
     else:
-        data = drive_service.files().get(fileId=reference).execute()
+        data = drive_service.files().get(fileId=reference, supportsAllDrives=True).execute()
 
     if not data:
         logger.debug("Failed.")
