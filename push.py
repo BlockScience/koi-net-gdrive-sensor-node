@@ -7,6 +7,7 @@ def notifications():
     # Handle the notification
     print("Received notification:", request.headers)
     print("Received data:", request.data)
+    print("Received json:", request.json)
     return '', 204  # Respond with no content
 
 if __name__ == '__main__':
