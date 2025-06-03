@@ -92,6 +92,7 @@ def fetch_changes(service, saved_start_page_token, drive_id=None):
 start_page_token = fetch_start_page_token(
   service=drive_service, drive_id=SHARED_DRIVE_ID
 )
+
 # print(start_page_token)
 # print("Start Page Token:")
 # print(type(start_page_token))
