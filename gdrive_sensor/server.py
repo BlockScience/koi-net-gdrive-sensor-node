@@ -65,6 +65,12 @@ koi_net_router = APIRouter(
     prefix="/koi-net"
 )
 
+# @koi_net_router.route('/google-drive-listener', methods=['POST'])
+# def google_drive_listener():
+#     # Handle the notification
+#     print("Received notification:", request.headers)
+#     return '', 204  # Respond with no content
+
 @koi_net_router.post(BROADCAST_EVENTS_PATH)
 def broadcast_events(req: EventsPayload):
     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
