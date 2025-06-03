@@ -23,6 +23,7 @@ def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0')
           includeItemsFromAllDrives=True, 
           supportsAllDrives=True,
           includeRemoved=True,
+          includeLabels=True,
           spaces='drive',
           pageToken=start_page_token,
           body=resource
