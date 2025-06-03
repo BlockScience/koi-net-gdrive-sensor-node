@@ -46,7 +46,7 @@ def notifications():
             elif state == 'add':
                 print("            add: External NEW")
                 event_type = EventType.NEW
-            event = Event().from_rid(event_type=event_type, rid=rid_obj)
+            event = Event(rid=rid_obj, event_type=event_type)
             node.processor.handle(event=event, source=KnowledgeSource.External)
     
     if request.data:
