@@ -18,7 +18,7 @@ def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0')
 
     try:
         # Call the changes.watch method
-        response = drive_service.files().watch(
+        response = drive_service.changes().watch(
           driveId=driveId, 
           includeItemsFromAllDrives=True, 
           supportsAllDrives=True,
