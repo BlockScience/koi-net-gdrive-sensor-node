@@ -9,16 +9,16 @@ from gdrive_sensor.utils.types import GoogleWorkspaceApp
 app = Flask(__name__)
 
 @app.route('/google-drive-listener', methods=['POST'])
-def notifications():
+def notifications(req: request):
     # Handle the notification
-    fileId = request.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
-    # changed = request.headers['X-Goog-Changed']
+    fileId = req.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
+    # changed = req.headers['X-Goog-Changed']
     
     print("fileId:", fileId)
     print()
-    print("Received notification:", request.headers)
+    print("Received notification:", req.headers)
     
-    state = request.headers['X-Goog-Resource-State']
+    state = req.headers['X-Goog-Resource-State']
     if state != 'sync':
         file = drive_service.files().get(fileId=fileId, supportsAllDrives=True).execute()
         mimeType = file.get('mimeType')
@@ -49,12 +49,12 @@ def notifications():
             event = Event(rid=rid_obj, event_type=event_type)
             node.processor.handle(event=event, source=KnowledgeSource.External)
     
-    if request.data:
-        print("Received data:", request.data)
+    if req.data:
+        print("Received data:", req.data)
     else:
         print("No data received.")
-    if request.is_json:
-        print("Received json:", request.json)
+    if req.is_json:
+        print("Received json:", req.json)
     else:
         print("Received non-JSON data.")
     return '', 204  # Respond with no content
