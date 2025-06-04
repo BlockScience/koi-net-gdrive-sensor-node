@@ -38,8 +38,8 @@ async def backfill_loop():
     global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
     while True:
         START_PAGE_TOKEN, NEXT_PAGE_TOKEN = await backfill()
-        # await asyncio.sleep(20)
-        await asyncio.sleep(600)
+        await asyncio.sleep(20)
+        # await asyncio.sleep(600)
         reset_backfill_parameters()
         
 
