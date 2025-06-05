@@ -25,16 +25,13 @@ def notifications():
         rid_obj = GoogleWorkspaceApp.from_reference(fileId).google_object(mimeType)
         if state == 'untrash':
             bundle = None
-            knowledge_source = None
             if node.cache.exists(rid_obj) == False:
                 print("untrash: External")
                 bundle = bundle_item(file)
-                knowledge_source = KnowledgeSource.External
             else:
                 print("untrash: Internal")
                 bundle = node.cache.read(rid_obj)
-                knowledge_source = KnowledgeSource.Internal
-            node.processor.handle(bundle=bundle, source=knowledge_source)
+            node.processor.handle(bundle=bundle)
         else:
             event_type = None
             if state in ['remove', 'trash']:
@@ -47,7 +44,7 @@ def notifications():
                 print("            add: External NEW")
                 event_type = EventType.NEW
             event = Event(rid=rid_obj, event_type=event_type)
-            node.processor.handle(event=event, source=KnowledgeSource.External)
+            node.processor.handle(event=event)
     
     if request.data:
         print("Received data:", request.data)

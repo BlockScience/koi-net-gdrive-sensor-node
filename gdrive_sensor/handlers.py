@@ -18,74 +18,7 @@ from .utils.functions.api import get_change_results
 from .core import node
 
 logger = logging.getLogger(__name__)
-
-
-@node.processor.register_handler(HandlerType.Network, rid_types=[KoiNetNode])
-def coordinator_contact(processor: ProcessorInterface, kobj: KnowledgeObject):
-    # when I found out about a new node
-    if kobj.normalized_event_type != EventType.NEW: 
-        return
-    
-    node_profile = kobj.bundle.validate_contents(NodeProfile)
-    
-    # looking for event provider of nodes
-    if KoiNetNode not in node_profile.provides.event:
-        return
-    
-    logger.debug("Identified a coordinator!")
-    logger.debug("Proposing new edge")
-    
-    # queued for processing
-    processor.handle(bundle=generate_edge_bundle(
-        source=kobj.rid,
-        target=node.identity.rid,
-        edge_type=EdgeType.WEBHOOK,
-        rid_types=[KoiNetNode]
-    ))
-    
-    logger.debug("Catching up on network state")
-    
-    rid_payload = processor.network.request_handler.fetch_rids(kobj.rid, rid_types=[KoiNetNode])
         
-    rids = [
-        rid for rid in rid_payload.rids 
-        if rid != processor.identity.rid and 
-        not processor.cache.exists(rid)
-    ]
-    
-    bundle_payload = processor.network.request_handler.fetch_bundles(kobj.rid, rids=rids)
-    
-    for bundle in bundle_payload.bundles:
-        # marked as external since we are handling RIDs from another node
-        # will fetch remotely instead of checking local cache
-        processor.handle(bundle=bundle, source=KnowledgeSource.External)
-    logger.debug("Done")
-        
-
-@node.processor.register_handler(HandlerType.Manifest) #, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
-def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
-    # if type(kobj.rid) in [GoogleDoc, GoogleSlides, GoogleSheets]:
-    #     logger.debug("Skipping Google Workspace App manifest handling")
-        # return
-    
-    prev_bundle = processor.cache.read(kobj.rid)
-
-    if prev_bundle:
-        if kobj.manifest.sha256_hash == prev_bundle.manifest.sha256_hash:
-            logger.debug("Hash of incoming manifest is same as existing knowledge, ignoring")
-            return STOP_CHAIN
-        if kobj.manifest.timestamp <= prev_bundle.manifest.timestamp:
-            logger.debug("Timestamp of incoming manifest is the same or older than existing knowledge, ignoring")
-            return STOP_CHAIN
-        
-        logger.debug("RID previously known to me, labeling as 'UPDATE'")
-        kobj.normalized_event_type = EventType.UPDATE
-
-    else:
-        logger.debug("RID previously unknown to me, labeling as 'NEW'")
-        kobj.normalized_event_type = EventType.NEW
-        
-    return kobj
 
 # def get change
 
@@ -107,6 +40,9 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     for change in changes:
         if change['changeType'] == 'file':
             change_dict[change['fileId']] = change
+            
+    
+    # TODO: don't manually assign normalized event types, let the default handlers take care of it
     
     change_ids = change_dict.keys()
     new_start_page_token = results.get('newStartPageToken')
@@ -132,12 +68,16 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
         
     namespace = kobj.rid.namespace
     reference = kobj.rid.reference
+    
+    # TODO: retrieve the full resource outside of the handler, call `node.processor.handle(bundle=bundle)`
 
     logger.debug("Retrieving full content...")
     if namespace == GoogleDriveFolder.namespace:
         logger.debug(f"Retrieving: {folderType}")
         data = drive_service.files().get(fileId=reference, supportsAllDrives=True).google_object(folderType).execute()
-    elif namespace == GoogleDoc.namespace:
+        
+    # NOTE: check out this type syntax!
+    elif type(kobj.rid) == GoogleDoc:
         logger.debug(f"Retrieving: {docsType}")
         data = doc_service.documents().get(documentId=reference).execute()
     elif namespace == GoogleSheets.namespace:
