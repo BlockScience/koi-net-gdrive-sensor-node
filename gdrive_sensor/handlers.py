@@ -89,7 +89,7 @@ def custom_manifest_handler(processor: ProcessorInterface, kobj: KnowledgeObject
 
 # def get change
 
-@node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
+@node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder])
 def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     assert type(kobj.rid) in [GoogleDoc, GoogleSlides, GoogleSheets]
     # logger.debug(kobj.rid)
