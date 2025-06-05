@@ -8,7 +8,7 @@
     # Optional: Create Virtual Environment
     # python -m venv ./venv
     # source ./venv/bin/activate
-    git checkout gdrive
+    git checkout dev
     python -m pip install --upgrade pip
     pip install -r requirements.txt
     # location of all metadata including caches and identities
