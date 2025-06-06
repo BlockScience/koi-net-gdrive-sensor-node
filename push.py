@@ -19,7 +19,7 @@ async def notifications(request: Request):
     print("fileId:", fileId)
     print()
     print("Received notification:")
-    pprint(request.headers)
+    pprint(dict(request.headers))
     
     state = request.headers['X-Goog-Resource-State']
     if state != 'sync':
