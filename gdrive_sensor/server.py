@@ -1,7 +1,9 @@
-import logging
-import asyncio
+import logging, asyncio
+from flask import Flask, request
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter
+
+from koi_net.protocol.event import EventType
 from koi_net.processor.knowledge_object import KnowledgeSource
 from koi_net.protocol.api_models import (
     PollEvents,
@@ -22,25 +24,24 @@ from koi_net.protocol.consts import (
 )
 from .core import node
 from .backfill import backfill
-from gdrive_sensor import START_PAGE_TOKEN, NEXT_PAGE_TOKEN
+from .utils.types import GoogleWorkspaceApp
+from .utils.connection import drive_service
+from .utils.functions.bundle import bundle_item
 
 
 logger = logging.getLogger(__name__)
 
 
-def reset_backfill_parameters():
-    global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
-    node.config.gdrive.start_page_token = START_PAGE_TOKEN
-    node.config.gdrive.next_page_token = NEXT_PAGE_TOKEN
-
-
 async def backfill_loop():
-    global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
     while True:
-        START_PAGE_TOKEN, NEXT_PAGE_TOKEN = await backfill()
-        await asyncio.sleep(20)
+        node.config.gdrive.start_page_token, node.config.gdrive.next_page_token = await backfill(
+            driveId = node.config.gdrive.drive_id, 
+            start_page_token = node.config.gdrive.start_page_token, 
+            next_page_token = node.config.gdrive.next_page_token
+        )
+        await asyncio.sleep(30)
         # await asyncio.sleep(600)
-        reset_backfill_parameters()
+        
         
 
 @asynccontextmanager
@@ -65,11 +66,55 @@ koi_net_router = APIRouter(
     prefix="/koi-net"
 )
 
-# @koi_net_router.route('/google-drive-listener', methods=['POST'])
-# def google_drive_listener():
-#     # Handle the notification
-#     print("Received notification:", request.headers)
-#     return '', 204  # Respond with no content
+listener = Flask(__name__)
+
+@app.route('/google-drive-listener', methods=['POST'])
+def notifications():
+    # Handle the notification
+    fileId = request.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
+    # changed = req.headers['X-Goog-Changed']
+    
+    print("fileId:", fileId)
+    print()
+    print("Received notification:", request.headers)
+    
+    state = request.headers['X-Goog-Resource-State']
+    if state != 'sync':
+        file = drive_service.files().get(fileId=fileId, supportsAllDrives=True).execute()
+        mimeType = file.get('mimeType')
+        rid_obj = GoogleWorkspaceApp.from_reference(fileId).google_object(mimeType)
+        if state in ['remove', 'trash']:
+            print(f"{state}: from source FORGET")
+            node.processor.handle(rid=rid_obj, event_type=EventType.FORGET)
+        elif state == 'update':
+            print(f"{state}: from source UPDATE")
+            if node.cache.exists(rid_obj) == False:
+                bundle = bundle_item(file)
+                bundle.contents['page_token'] = node.config.gdrive.start_page_token
+                node.processor.handle(bundle=bundle)
+            else:
+                bundle = node.cache.read(rid_obj)
+            node.config.gdrive.start_page_token = bundle.contents['page_token']
+        elif state in ['add', 'untrash']:
+            bundle = None
+            if node.cache.exists(rid_obj) == False:
+                print(f"{state}: External")
+                bundle = bundle_item(file)
+            else:
+                print(f"{state}: Internal")
+                bundle = node.cache.read(rid_obj)
+            node.processor.handle(bundle=bundle)
+    
+    if request.data:
+        print("Received data:", request.data)
+    else:
+        print("No data received.")
+    if request.is_json:
+        print("Received json:", request.json)
+    else:
+        print("Received non-JSON data.")
+    return '', 204  # Respond with no content
+
 
 @koi_net_router.post(BROADCAST_EVENTS_PATH)
 def broadcast_events(req: EventsPayload):
@@ -100,3 +145,4 @@ def fetch_bundles(req: FetchBundles) -> BundlesPayload:
 
 
 app.include_router(koi_net_router)
+# listener.run(port=8003)
