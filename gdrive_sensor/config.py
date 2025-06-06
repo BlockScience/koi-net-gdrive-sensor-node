@@ -21,7 +21,7 @@ class GDriveEnvConfig(EnvConfig):
 
 class GDriveServerConfig(BaseModel):
     host: str | None = "127.0.0.1"
-    port: int | None = 8002
+    port: int | None = 8003
     path: str | None = "/koi-net"
     
     @property

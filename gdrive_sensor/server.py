@@ -1,7 +1,6 @@
 import logging, asyncio
-from flask import Flask, request
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 
 from koi_net.protocol.event import EventType
 from koi_net.processor.knowledge_object import KnowledgeSource
@@ -27,6 +26,7 @@ from .backfill import backfill
 from .utils.types import GoogleWorkspaceApp
 from .utils.connection import drive_service
 from .utils.functions.bundle import bundle_item
+from pprint import pprint
 
 
 logger = logging.getLogger(__name__)
@@ -66,17 +66,15 @@ koi_net_router = APIRouter(
     prefix="/koi-net"
 )
 
-listener = Flask(__name__)
-
-@app.route('/google-drive-listener', methods=['POST'])
-def notifications():
+@app.post('/google-drive-listener')
+async def notifications(request: Request):
     # Handle the notification
     fileId = request.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
-    # changed = req.headers['X-Goog-Changed']
     
     print("fileId:", fileId)
     print()
-    print("Received notification:", request.headers)
+    print("Received notification:")
+    pprint(dict(request.headers))
     
     state = request.headers['X-Goog-Resource-State']
     if state != 'sync':
@@ -97,7 +95,7 @@ def notifications():
             node.config.gdrive.start_page_token = bundle.contents['page_token']
         elif state in ['add', 'untrash']:
             bundle = None
-            if node.cache.exists(rid_obj) == False:
+            if not node.cache.exists(rid_obj):
                 print(f"{state}: External")
                 bundle = bundle_item(file)
             else:
@@ -105,15 +103,17 @@ def notifications():
                 bundle = node.cache.read(rid_obj)
             node.processor.handle(bundle=bundle)
     
-    if request.data:
-        print("Received data:", request.data)
+    if request.body:
+        print("Received data:", await request.body())
     else:
         print("No data received.")
-    if request.is_json:
-        print("Received json:", request.json)
+    if request.headers.get('content-type') == 'application/json':
+        json_data = await request.json()
+        print("Received json:", json_data)
     else:
         print("Received non-JSON data.")
-    return '', 204  # Respond with no content
+    
+    return {"message": "No content"}, 204  # Respond with no content
 
 
 @koi_net_router.post(BROADCAST_EVENTS_PATH)
