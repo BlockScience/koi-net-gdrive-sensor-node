@@ -7,6 +7,7 @@ from gdrive_sensor.utils.connection import drive_service
 from gdrive_sensor.utils.functions.bundle import bundle_item
 from gdrive_sensor.utils.functions.api import get_change_results
 from gdrive_sensor.utils.types import GoogleWorkspaceApp
+from pprint import pprint
 
 app = FastAPI()
 
@@ -17,7 +18,7 @@ async def notifications(request: Request):
     
     print("fileId:", fileId)
     print()
-    print("Received notification:", request.headers)
+    pprint("Received notification:", request.headers)
     
     state = request.headers['X-Goog-Resource-State']
     if state != 'sync':
