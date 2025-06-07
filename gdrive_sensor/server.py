@@ -61,12 +61,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+listener = FastAPI(
+    title="gdrive_listener",
+    version="1.0.0"
+)
+
 
 koi_net_router = APIRouter(
     prefix="/koi-net"
 )
 
-@app.post('/google-drive-listener')
+@listener.post('/google-drive-listener')
 async def notifications(request: Request):
     # Handle the notification
     fileId = request.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
@@ -145,4 +150,3 @@ def fetch_bundles(req: FetchBundles) -> BundlesPayload:
 
 
 app.include_router(koi_net_router)
-# listener.run(port=8003)
