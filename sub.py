@@ -75,5 +75,6 @@ def subscribe_to_file_changes(fileId, host: str = '0.0.0.0'):
 # start_page_token = START_PAGE_TOKEN
 fileId = '1xaI-rRZdkGQajXUJg65StBpbblyK1wwIhpiS1AiBygA'
 channel_id = subscribe_to_file_changes(fileId=fileId, host='koi-net.block.science')
+# channel_id = subscribe_to_file_changes(fileId=fileId)
 print()
 # print(channel_id)
