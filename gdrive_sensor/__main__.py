@@ -9,7 +9,7 @@ def run_app(app_instance, host, port):
 if __name__ == "__main__":
     # Define the host and ports for each application
     app_host = node.config.server.host
-    app_port = node.config.server.port
+    app_port = node.config.server.port = 8003
     listener_host = '0.0.0.0'
     # listener_host = 'koi-net.block.science'
     listener_port = 8004
