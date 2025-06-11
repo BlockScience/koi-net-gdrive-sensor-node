@@ -1,6 +1,7 @@
 from ..connection import drive_service
 from googleapiclient.errors import HttpError
-from datetime import datetime
+from pprint import pprint
+import uuid
 
 # Function to list types, names, IDs, and URIs of all folders and files in Google Drive
 # list_all_folders_and_files_with_details
@@ -117,3 +118,31 @@ def fetch_changes(service, saved_start_page_token, drive_id=None):
     saved_start_page_token = None
 
     return saved_start_page_token
+
+def subscribe_to_file_changes(fileId: str, ttl: int, host: str = '0.0.0.0'):
+    channel_id = str(uuid.uuid4())  # Generate a unique channel ID
+    channel_address = f'https://{host}/google-drive-listener'  # Your webhook URL
+    resource = {
+        'id': channel_id,
+        'type': 'web_hook',
+        'address': channel_address,
+        'params': {
+            'ttl': ttl  # Time-to-live for the channel in seconds
+        }
+    }
+
+    try:
+        # Call the changes.watch method
+        response = drive_service.files().watch(
+          fileId=fileId, 
+          supportsAllDrives=True,
+          body=resource
+        ).execute()
+        # print(f"Subscribed to Drive changes with channel ID: {response['id']}")
+        # print()
+        # pprint(response)
+        # return response['id']
+        return response
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+

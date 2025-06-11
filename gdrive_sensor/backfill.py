@@ -1,16 +1,14 @@
 import logging, asyncio
 from gdrive_sensor.core import node
 from gdrive_sensor.utils.functions.bundle import bundle_list
-from gdrive_sensor.utils.functions.api import get_change_results
+from gdrive_sensor.utils.functions.api import get_change_results, subscribe_to_file_changes
 from gdrive_sensor.utils.functions.events import is_file_deleted
 from gdrive_sensor.utils.types import GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
 from gdrive_sensor.utils.types import folderType, docsType, sheetsType, presentationType
 from gdrive_sensor.utils.connection import drive_service, doc_service, sheet_service, slides_service
 from koi_net.protocol.event import EventType #, Event
 from rid_lib.ext import Bundle
-# from gdrive_sensor.utils.types import GoogleWorkspaceApp
-# from gdrive_sensor import START_PAGE_TOKEN, NEXT_PAGE_TOKEN
-# from pprint import pprint
+from pprint import pprint
 
 # ToDo: trim down bundle list to GoogleDrive File such that handler derefs specific file types
 
@@ -73,6 +71,12 @@ async def backfill(
                     node.processor.handle(bundle=full_bundle)
                 else:
                     logger.debug("Incoming note is not newer")
+                    subscription_response = subscribe_to_file_changes(
+                        fileId=rid_obj.reference, 
+                        ttl=node.config.gdrive.subscription_window - 30, 
+                        host=node.config.gdrive.subscription_host
+                    )
+                    pprint(subscription_response)
             else:
                 logger.debug("Bundle is NEW / not cached")
                 bundle.contents['page_token'] = start_page_token

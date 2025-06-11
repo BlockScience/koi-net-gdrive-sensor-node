@@ -10,9 +10,8 @@ if __name__ == "__main__":
     # Define the host and ports for each application
     app_host = node.config.server.host
     app_port = node.config.server.port = 8004
-    listener_host = '0.0.0.0'
-    # listener_host = 'koi-net.block.science'
-    listener_port = 8003
+    listener_host = node.config.gdrive.listener_host
+    listener_port = node.config.gdrive.listener_port
     
     # Create threads for each application
     app_thread = threading.Thread(target=run_app, args=(app, app_host, app_port))

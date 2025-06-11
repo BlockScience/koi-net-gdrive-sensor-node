@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field #, ServerConfig
 from koi_net.protocol.node import NodeProfile, NodeType, NodeProvides
 from koi_net.config import NodeConfig, EnvConfig, KoiNetConfig
 from .utils.types import GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder
-from gdrive_sensor import ROOT, CREDENTIALS, SHARED_DRIVE_ID, START_PAGE_TOKEN, NEXT_PAGE_TOKEN
+from . import ROOT, CREDENTIALS, SHARED_DRIVE_ID, START_PAGE_TOKEN, NEXT_PAGE_TOKEN, SUBSCRIPTION_WINDOW
 
 load_dotenv()
 
@@ -14,6 +14,10 @@ class GDriveConfig(BaseModel):
     drive_id: str | None = SHARED_DRIVE_ID
     start_page_token: str | None = START_PAGE_TOKEN
     next_page_token: str | None = NEXT_PAGE_TOKEN
+    subscription_host: str | None = 'koi-net.block.science'
+    listener_host: str | None = '0.0.0.0'
+    listener_port: int | None = 8003
+    subscription_window: int | None = SUBSCRIPTION_WINDOW
     last_processed_ts: float | None = 0.0
 
 class GDriveEnvConfig(EnvConfig):

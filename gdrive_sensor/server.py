@@ -39,8 +39,9 @@ async def backfill_loop():
             start_page_token = node.config.gdrive.start_page_token, 
             next_page_token = node.config.gdrive.next_page_token
         )
-        await asyncio.sleep(30)
+        # await asyncio.sleep(30)
         # await asyncio.sleep(600)
+        await asyncio.sleep(node.config.gdrive.subscription_window)
         
         
 
@@ -121,15 +122,12 @@ async def notifications(request: Request):
     
     return {"message": "No content"}, 204  # Respond with no content
 
-
 @koi_net_router.post(BROADCAST_EVENTS_PATH)
 def broadcast_events(req: EventsPayload):
     logger.info(f"Request to {BROADCAST_EVENTS_PATH}, received {len(req.events)} event(s)")
     for event in req.events:
         logger.info(f"{event!r}")
         node.processor.handle(event=event, source=KnowledgeSource.External)
-        # node.processor.handle(event=event, source=KnowledgeSource.Internal)
-    
 
 @koi_net_router.post(POLL_EVENTS_PATH)
 def poll_events(req: PollEvents) -> EventsPayload:
