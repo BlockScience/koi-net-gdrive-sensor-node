@@ -1,12 +1,14 @@
 from gdrive_sensor import SENSOR
 from . import get_parent_ids
+from ...core import node
 from ..connection import drive_service, doc_service, sheet_service, slides_service
 from ..types import GoogleWorkspaceApp, docsType, folderType, sheetsType, presentationType
 from rid_lib import RID
 from rid_lib.ext import Cache, Effector, Bundle
 
 
-cache = Cache(f"{SENSOR}/my_cache")
+# cache = Cache(f"{SENSOR}/my_cache")
+cache = node.cache
 effector = Effector(cache)
 
 def bundle_dir(item: dict):

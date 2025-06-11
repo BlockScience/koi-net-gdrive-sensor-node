@@ -1,7 +1,8 @@
-import logging
-import asyncio
+import logging, asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
+
+from koi_net.protocol.event import EventType
 from koi_net.processor.knowledge_object import KnowledgeSource
 from koi_net.protocol.api_models import (
     PollEvents,
@@ -22,25 +23,26 @@ from koi_net.protocol.consts import (
 )
 from .core import node
 from .backfill import backfill
-from gdrive_sensor import START_PAGE_TOKEN, NEXT_PAGE_TOKEN
+from .utils.types import GoogleWorkspaceApp
+from .utils.connection import drive_service
+from .utils.functions.bundle import bundle_item
+from pprint import pprint
 
 
 logger = logging.getLogger(__name__)
 
 
-def reset_backfill_parameters():
-    global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
-    node.config.gdrive.start_page_token = START_PAGE_TOKEN
-    node.config.gdrive.next_page_token = NEXT_PAGE_TOKEN
-
-
 async def backfill_loop():
-    global START_PAGE_TOKEN, NEXT_PAGE_TOKEN
     while True:
-        START_PAGE_TOKEN, NEXT_PAGE_TOKEN = await backfill()
-        await asyncio.sleep(20)
+        node.config.gdrive.start_page_token, node.config.gdrive.next_page_token = await backfill(
+            driveId = node.config.gdrive.drive_id, 
+            start_page_token = node.config.gdrive.start_page_token, 
+            next_page_token = node.config.gdrive.next_page_token
+        )
+        # await asyncio.sleep(30)
         # await asyncio.sleep(600)
-        reset_backfill_parameters()
+        await asyncio.sleep(node.config.gdrive.subscription_window)
+        
         
 
 @asynccontextmanager
@@ -60,16 +62,63 @@ app = FastAPI(
     version="1.0.0"
 )
 
+listener = FastAPI(
+    title="gdrive_listener",
+    version="1.0.0"
+)
+
 
 koi_net_router = APIRouter(
     prefix="/koi-net"
 )
 
-# @koi_net_router.route('/google-drive-listener', methods=['POST'])
-# def google_drive_listener():
-#     # Handle the notification
-#     print("Received notification:", request.headers)
-#     return '', 204  # Respond with no content
+@listener.post('/google-drive-listener')
+async def notifications(request: Request):
+    # Handle the notification
+    fileId = request.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
+    print("Subscribed to fileId:", fileId)
+    print("Received notification:")
+    pprint(dict(request.headers))
+    
+    state = request.headers['X-Goog-Resource-State']
+    if state != 'sync':
+        file = drive_service.files().get(fileId=fileId, supportsAllDrives=True).execute()
+        mimeType = file.get('mimeType')
+        rid_obj = GoogleWorkspaceApp.from_reference(fileId).google_object(mimeType)
+        if state in ['remove', 'trash']:
+            print(f"{state}: from source FORGET")
+            node.processor.handle(rid=rid_obj, event_type=EventType.FORGET)
+        elif state == 'update':
+            if node.cache.exists(rid_obj) == False:
+                print(f"{state}: from source UPDATE & NOT cached")
+                bundle = bundle_item(file)
+                bundle.contents['page_token'] = node.config.gdrive.start_page_token
+                node.processor.handle(bundle=bundle)
+            else:
+                print(f"{state}: from source UPDATE & Cached")
+                bundle = node.cache.read(rid_obj)
+                node.config.gdrive.start_page_token = bundle.contents['page_token']
+        elif state in ['add', 'untrash']:
+            bundle = None
+            if not node.cache.exists(rid_obj):
+                print(f"{state}: External")
+                bundle = bundle_item(file)
+            else:
+                print(f"{state}: Internal")
+                bundle = node.cache.read(rid_obj)
+            node.processor.handle(bundle=bundle)
+    
+    if request.body:
+        print("Received data:", await request.body())
+    else:
+        print("No data received.")
+    if request.headers.get('content-type') == 'application/json':
+        json_data = await request.json()
+        print("Received json:", json_data)
+    else:
+        print("Received non-JSON data.")
+    
+    return {"message": "No content"}, 204  # Respond with no content
 
 @koi_net_router.post(BROADCAST_EVENTS_PATH)
 def broadcast_events(req: EventsPayload):
@@ -77,8 +126,6 @@ def broadcast_events(req: EventsPayload):
     for event in req.events:
         logger.info(f"{event!r}")
         node.processor.handle(event=event, source=KnowledgeSource.External)
-        # node.processor.handle(event=event, source=KnowledgeSource.Internal)
-    
 
 @koi_net_router.post(POLL_EVENTS_PATH)
 def poll_events(req: PollEvents) -> EventsPayload:

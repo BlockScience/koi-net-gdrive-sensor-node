@@ -45,7 +45,8 @@ def subscribe_to_drive_changes(driveId, start_page_token, host: str = '0.0.0.0')
 
 
 def subscribe_to_file_changes(fileId, host: str = '0.0.0.0'):
-    channel_id = str(uuid.uuid4())  # Generate a unique channel ID
+    # channel_id = str(uuid.uuid4())  # Generate a unique channel ID
+    channel_id = '0677680e-2aa7-4673-a3eb-94951fbbd5d8'
     channel_address = f'https://{host}/google-drive-listener'  # Your webhook URL
     resource = {
         'id': channel_id,
@@ -75,5 +76,6 @@ def subscribe_to_file_changes(fileId, host: str = '0.0.0.0'):
 # start_page_token = START_PAGE_TOKEN
 fileId = '1xaI-rRZdkGQajXUJg65StBpbblyK1wwIhpiS1AiBygA'
 channel_id = subscribe_to_file_changes(fileId=fileId, host='koi-net.block.science')
+# channel_id = subscribe_to_file_changes(fileId=fileId)
 print()
 # print(channel_id)

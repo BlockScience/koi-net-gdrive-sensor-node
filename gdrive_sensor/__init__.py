@@ -10,11 +10,9 @@ SENSOR = f'{ROOT}/gdrive_sensor'
 CREDENTIALS = f'{ROOT}/creds/service_account/gdrive-sensor-cred.json'
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]
-# START_PAGE_TOKEN = '86'
-# CURRENT_PAGE_TOKEN = '86'
 START_PAGE_TOKEN = '67'
-# CURRENT_PAGE_TOKEN = '86'
 NEXT_PAGE_TOKEN = None
+SUBSCRIPTION_WINDOW = 600 # Seconds
 
 LAST_PROCESSED_TS = datetime.now()
 
