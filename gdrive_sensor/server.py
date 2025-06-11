@@ -76,9 +76,7 @@ koi_net_router = APIRouter(
 async def notifications(request: Request):
     # Handle the notification
     fileId = request.headers['X-Goog-Resource-Uri'].split('?')[0].rsplit('/', 1)[-1]
-    
-    print("fileId:", fileId)
-    print()
+    print("Subscribed to fileId:", fileId)
     print("Received notification:")
     pprint(dict(request.headers))
     
