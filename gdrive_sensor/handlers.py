@@ -19,9 +19,6 @@
 
 # logger = logging.getLogger(__name__)
         
-
-# def get change
-
 # @node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder])
 # def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
 #     assert type(kobj.rid) in [GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder]
@@ -106,49 +103,3 @@
 #     kobj.contents = full_note_bundle.contents
     
 #     return kobj
-
-# @node.processor.register_handler(HandlerType.Network, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
-# def pagination(processor: ProcessorInterface, kobj: KnowledgeObject):
-#     if kobj.normalized_event_type != EventType.NEW: 
-#         results = drive_service.changes().list(
-#             driveId=node.config.gdrive.drive_id, 
-#             includeItemsFromAllDrives=True, 
-#             supportsAllDrives=True,
-#             pageToken=node.config.gdrive.start_page_token,
-#             includeRemoved=True,
-#             spaces='drive'
-#         ).execute()
-#         # node.config.gdrive.start_page_token = results.get('newStartPageToken')
-#     logger.debug("Done")
-
-
-# @node.processor.register_handler(HandlerType.RID, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
-# def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
-#     # rid = kobj.rid
-#     dt = kobj.bundle.manifest.timestamp
-#     ts = dt.timestamp()
-    
-#     global LAST_PROCESSED_TS
-#     print(ts < LAST_PROCESSED_TS.timestamp())
-
-#     if ts < LAST_PROCESSED_TS: 
-#         return
-    
-#     LAST_PROCESSED_TS = ts
-    
-#     with open("state.json", "w") as f:
-#         json.dump({"last_processed_ts": LAST_PROCESSED_TS}, f)
-
-# @node.processor.register_handler(HandlerType.RID, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets])
-# def update_last_processed_ts(processor: ProcessorInterface, kobj: KnowledgeObject):
-#     file_id = kobj.rid.reference
-#     file = drive_service.files().get(fileId=file_id, fields='modifiedTime', supportsAllDrives=True).execute()
-#     modified_time_str = file.get('modifiedTime')
-#     modified_time_dt = datetime.fromisoformat(modified_time_str[:-1]) if modified_time_str.endswith('Z') else datetime.fromisoformat(modified_time_str)
-#     # formated_modified_time_str = str(modified_time_dt)
-
-#     if modified_time_dt.timestamp() < float(node.config.gdrive.last_processed_ts):
-#         return
-    
-#     node.config.gdrive.last_processed_ts = modified_time_dt.timestamp()
-#     node.config.save_to_yaml()
