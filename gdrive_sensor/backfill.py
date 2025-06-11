@@ -39,7 +39,6 @@ async def backfill(
     change_ids = change_dict.keys()
 
     for bundle in bundles:
-        bundle.contents['page_token'] = start_page_token
         rid_obj = bundle.manifest.rid
         prev_bundle = node.processor.cache.read(rid_obj)
         # NOTE: try to handle is_file_deleted in bundling process
@@ -70,11 +69,13 @@ async def backfill(
                         rid=rid_obj,
                         contents=data
                     )
+                    full_bundle.contents['page_token'] = start_page_token
                     node.processor.handle(bundle=full_bundle)
                 else:
                     logger.debug("Incoming note is not newer")
             else:
                 logger.debug("Bundle is NEW / not cached")
+                bundle.contents['page_token'] = start_page_token
                 node.processor.handle(bundle=bundle)
 
     return new_start_page_token, next_page_token
