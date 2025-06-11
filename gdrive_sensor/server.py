@@ -90,14 +90,15 @@ async def notifications(request: Request):
             print(f"{state}: from source FORGET")
             node.processor.handle(rid=rid_obj, event_type=EventType.FORGET)
         elif state == 'update':
-            print(f"{state}: from source UPDATE")
             if node.cache.exists(rid_obj) == False:
+                print(f"{state}: from source UPDATE & NOT cached")
                 bundle = bundle_item(file)
                 bundle.contents['page_token'] = node.config.gdrive.start_page_token
                 node.processor.handle(bundle=bundle)
             else:
+                print(f"{state}: from source UPDATE & Cached")
                 bundle = node.cache.read(rid_obj)
-            node.config.gdrive.start_page_token = bundle.contents['page_token']
+                node.config.gdrive.start_page_token = bundle.contents['page_token']
         elif state in ['add', 'untrash']:
             bundle = None
             if not node.cache.exists(rid_obj):
