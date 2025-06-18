@@ -43,8 +43,6 @@ async def backfill_loop():
         # await asyncio.sleep(600)
         await asyncio.sleep(node.config.gdrive.subscription_window)
         
-        
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):    
     node.start()

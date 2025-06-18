@@ -1,30 +1,22 @@
 import logging
-# from datetime import datetime, timedelta
 from koi_net.processor.handler import HandlerType, STOP_CHAIN
-from koi_net.processor.knowledge_object import KnowledgeSource, KnowledgeObject
+from koi_net.processor.knowledge_object import KnowledgeObject
 from koi_net.processor.interface import ProcessorInterface
 from koi_net.protocol.event import EventType
-from koi_net.protocol.edge import EdgeType
-from koi_net.protocol.node import NodeProfile
-from koi_net.protocol.helpers import generate_edge_bundle
 from rid_lib.ext import Bundle
-from rid_lib.types import KoiNetNode
 
-from .utils.types import GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
-from .utils.types import folderType, docsType, sheetsType, presentationType
-from .utils.connection import drive_service, doc_service, sheet_service, slides_service
-from .utils.functions.events import get_FUN_event_type, is_file_deleted
-from .utils.functions.api import get_change_results
-from .core import node
+from ...utils.types import GoogleDriveFolder, GoogleDoc, GoogleSlides, GoogleSheets
+from ...utils.types import folderType, docsType, sheetsType, presentationType
+from ...utils.connection import drive_service, doc_service, sheet_service, slides_service
+from ...utils.functions.events import get_FUN_event_type, is_file_deleted
+from ...utils.functions.api import get_change_results
+from ...core import node
 
 logger = logging.getLogger(__name__)
         
-@node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder])
+# @node.processor.register_handler(HandlerType.Bundle, rid_types=[GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder])
 def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
     assert type(kobj.rid) in [GoogleDoc, GoogleSlides, GoogleSheets, GoogleDriveFolder]
-    # logger.debug(kobj.rid)
-    # logger.debug(kobj.rid.namespace)
-    # logger.debug(kobj.rid.reference)
     prev_bundle = processor.cache.read(kobj.rid)
     print(node.config.gdrive.start_page_token)
     print(node.config.gdrive.next_page_token)
@@ -52,7 +44,6 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
             if prev_bundle.rid.reference in change_ids:
                 logger.debug("Incoming note has been changed more recently!")
                 logger.debug(f"Page Token Changed from {node.config.gdrive.start_page_token} to {new_start_page_token}")
-                # kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj)
                 kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj.rid)
             else:
                 logger.debug("Incoming note is not newer")
@@ -60,13 +51,10 @@ def custom_bundle_handler(processor: ProcessorInterface, kobj: KnowledgeObject):
         else:
             logger.debug("Incoming note is previously unknown to me")
             if kobj.rid.reference in change_ids:
-                # kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj)
                 kobj.normalized_event_type = get_FUN_event_type(change_dict, kobj.rid)
         
     namespace = kobj.rid.namespace
     reference = kobj.rid.reference
-    
-    # TODO: retrieve the full resource outside of the handler, call `node.processor.handle(bundle=bundle)`
 
     logger.debug("Retrieving full content...")
     if namespace == GoogleDriveFolder.namespace:

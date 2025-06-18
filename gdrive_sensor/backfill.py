@@ -88,3 +88,21 @@ if __name__ == "__main__":
     node.start()
     asyncio.run(backfill())
     node.stop()
+
+# cached_unchanged  = blacklist
+    # # Forget
+    # removed_files = get_trashed_file_ids(driveId)
+    # # Update
+    # cached_changed = [changed_id for changed_id in change_ids if node.cache.exists(changed_id) == True]
+    # # New
+    # uncached_changed = [changed_id for changed_id in change_ids if node.cache.exists(changed_id) == False]
+    # # API Query Whitelist
+    # whitelist = cached_changed + uncached_changed + removed_files
+
+    # cached_changed = [rid_whitelist_dict[reference] for reference in intersecting_references]
+    # print(cached_changed)
+    # exit()
+
+    # pprint(node.processor.kobj_queue())
+    # pprint(node.processor.network.webhook_event_queue)
+    # exit()
