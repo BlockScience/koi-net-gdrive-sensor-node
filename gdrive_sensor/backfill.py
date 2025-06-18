@@ -73,7 +73,7 @@ async def backfill(
                     logger.debug("Incoming note is not newer")
                     subscription_response = subscribe_to_file_changes(
                         fileId=rid_obj.reference, 
-                        ttl=node.config.gdrive.subscription_window - 30, 
+                        ttl=node.config.gdrive.subscription_window,
                         host=node.config.gdrive.subscription_host
                     )
                     pprint(subscription_response)

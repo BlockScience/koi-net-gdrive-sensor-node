@@ -39,9 +39,9 @@ async def backfill_loop():
             start_page_token = node.config.gdrive.start_page_token, 
             next_page_token = node.config.gdrive.next_page_token
         )
-        await asyncio.sleep(30)
+        # await asyncio.sleep(30)
         # await asyncio.sleep(600)
-        # await asyncio.sleep(node.config.gdrive.subscription_window)
+        await asyncio.sleep(node.config.gdrive.subscription_window)
         
         
 

@@ -12,7 +12,7 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 SHARED_DRIVE_ID = os.environ["SHARED_DRIVE_ID"]
 START_PAGE_TOKEN = '67'
 NEXT_PAGE_TOKEN = None
-SUBSCRIPTION_WINDOW = 20 #600 # Seconds
+SUBSCRIPTION_WINDOW = 30 #600 # Seconds
 LAST_PROCESSED_TS = datetime.now()
 
 logger = logging.getLogger()
