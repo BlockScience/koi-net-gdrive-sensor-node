@@ -100,8 +100,9 @@ async def notifications(request: Request):
                 node.config.gdrive.start_page_token = bundle.contents['page_token']
         elif state in ['add', 'untrash']:
             bundle = None
-            if not node.cache.exists(rid_obj):
+            if node.cache.exists(rid_obj) == False:
                 print(f"{state}: External")
+                bundle.contents['page_token'] = node.config.gdrive.start_page_token
                 bundle = bundle_item(file)
             else:
                 print(f"{state}: Internal")
